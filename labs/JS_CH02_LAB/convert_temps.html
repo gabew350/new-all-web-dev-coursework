@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">	
+    <title>Convert from Fahrenheit to Celsius</title>
+    <script>
+       function main (){
+       //variables
+       let fTemp    = 0;
+       let cTemp    = 0;
+       let runAgain = true;
+       let response = "";
+
+       while (runAgain) {
+            fTemp = parseInt(promp("Enter Fahrenheit temperature:", "70"));
+            while (isNaN(fTemp)) {
+                ftemp = parseInt(prompt("Enter Fahrenheit temperature:", "70"));
+            }
+
+            cTemp = ((fTemp - 32) * (5 / 9));
+
+            alert(`Farenheit Temperture: ${fTemp} \nCelsius Temperature: ${cTemp}`);
+       }
+       //	Ask user if s/he wants to run program again
+		firstChar = prompt("Run Program Again??? (Y/N)", "Y");
+		firstChar = firstChar.charAt(0).toUpperCase();
+		
+		//alert("firstChar = " + firstChar);
+		
+		if (firstChar != "Y") {
+			runAgain = true;
+       }
+    }
+    </script>
+</head>
+<body>
+    <main>
+        <h1>Thanks for using the temperature converter</h1>
+    </main>
+</body>
+</html>

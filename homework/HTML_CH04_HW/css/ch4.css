@@ -1,0 +1,30 @@
+body + h3 {
+    background: #ffffff00; 
+    color: #ffa500;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+ol{
+    background-color: #ed00ed;
+    color: hsl(0, 0%, 100%)
+}
+p { background-color: rgba(47, 230, 10);
+    color:  rgb(238, 14, 14);
+    margin-left: 10px;
+    margin-right: 10px;
+    
+}
+h1 {
+    font-family: italic small-caps bold Georgia;
+    font-size: 40px;
+    font-style: unset;
+    font-weight: bold;
+    line-height: 15px;
+  }
+  h3 {
+    text-shadow: 1px 1px #ff0000;
+  }
+  img src="allimages/videogames.jpg" alt="Videogames"{
+    float: left;}
+  
+  

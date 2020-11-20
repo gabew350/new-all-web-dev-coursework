@@ -1,0 +1,28 @@
+footer{border-style: dashed;
+    border-color: darkblue;
+    font-family: arial;
+    color: darkblue;
+    border-width: 3px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: right;
+      background-color: lightblue;}
+    }
+    .notice{
+        width: 80%;
+        text-align: center;
+        border-style: dashed;
+    border-color: darkblue;
+    font-family: arial;
+    color: darkblue;
+    border-width: 3px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: right;
+      background-color: lightblue;
+    }
+    .class{font-family: "times new roman"}

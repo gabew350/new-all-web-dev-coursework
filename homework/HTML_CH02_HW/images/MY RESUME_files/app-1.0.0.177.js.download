@@ -1,0 +1,2264 @@
+var platFormJsUrl = 'https://apis.google.com/js/platform.js';
+var packageLoaded;
+var emptyGuid = "00000000-0000-0000-0000-000000000000";
+var triggerHIWStage = false;
+var environment = window.location.host.split('.')[0];
+var isLocal = window.location.host.indexOf('local') > -1;
+var intlportal = ["luk", "lfr", "les", "lit", "lde", "lbr", "lnl", "lpl", "lpt"];
+var availableCountryCDs = ["ca", "au", "nz", "ae", "be", "br", "ch", "cl", "de", "es", "gf", "gh", "in", "it", "mx", "ph", "sg", "za"];
+function getApiUrl(isV2,isEcom,isV3) {
+    var environment = window.location.host.split('.')[0];
+    var configName = "qa";
+    var isRNA = window.location.host.indexOf('resume-now.com') > -1;
+
+    var baseUrl = "";
+    var apiEnvironment = RDL.environmentURL || environment;
+    baseUrl = apiEnvironment != "www" ? "https://api-@@env-embedded-builder." + RDL.Portal.url + "/api/v1/" : "https://api-embeddedbuilder." + RDL.Portal.url + "/api/v1/";
+    baseUrl=isEcom?
+    (apiEnvironment != "www" ? "https://api-@@env-embeddedecom." + RDL.Portal.url + "/api/v1/" : "https://api-embeddedecom." + RDL.Portal.url + "/api/v1/")
+    :baseUrl;
+    switch (apiEnvironment) {
+        case "reg":
+        case "regression":
+            configName = "reg";
+            break;
+        case "stg":
+            configName = "stg";
+            break;
+        case "perf":
+            configName = "perf";
+            break;
+        case "www":
+            break;
+    }
+    var returnUrl = baseUrl.replace('@@env', configName);
+
+    if(RDL.Portal.removeOptionsCall)
+    {
+        returnUrl=window.location.protocol+"//"+window.location.hostname+(isEcom ? "/ecom/" : "/eb/")+"api/v1/";
+    }
+
+    return isV2 ? returnUrl.replace('v1', 'v2') : isV3 ? returnUrl.replace('v1', 'v3') : returnUrl;
+}
+function isIPAD() {
+    if (navigator.userAgent.match(/iPad/i))
+        return true;
+    else
+        return false;
+}
+function startApp(event) {
+    if (event != null)
+        event.preventDefault();
+    RDL.startPageLoader();
+    packageLoaded = setInterval(function () {
+        if (window.hiwComponent) {
+            clearInterval(packageLoaded);
+            window.hiwComponent.navigateToChooseTemplate();
+        }
+    }, 10);
+}
+
+function downLoadFile(name, url, fileType, skinCD, docformatName) {
+    var xmlhttp;
+    var sendDownloadEvent = true;
+    var template = RDL.Skins.filter(function (item, index) {
+        return item.skinCD == skinCD;
+    });
+    var templateName = template && template.length > 0 ? template[0].name : '';
+
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onload = function (event) {
+        var blob = xmlhttp.response;
+        if (navigator.msSaveOrOpenBlob) {
+            navigator.msSaveOrOpenBlob(blob, name + '.' + fileType);
+        } else {
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = name + '.' + fileType;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    url = templateName ? url + "&templateName=" + templateName : url;
+    url = sendDownloadEvent ? url + "&sendDownloadEvent=" + sendDownloadEvent : url;
+
+    xmlhttp.open('GET', url, true);
+    xmlhttp.withCredentials = true;
+    xmlhttp.responseType = "blob";
+    xmlhttp.send();
+}
+
+function loadJs(src) {
+    var f = document.getElementsByTagName('script')[0],
+        j = document.createElement('script'); j.async = true; j.src = src; f.parentNode.insertBefore(j, f);
+}
+
+function getClientExperimentJSPath() {
+    var path =environment === "www" || environment === "stg" ? "https://www.resume-now.com/ui-experimentation/rna/experiment-spa.js":"https://experimentssandbox.blob.core.windows.net/ui-experimentation/rna/experiment-spa.js";
+    return path;
+}
+
+if(!RDL.isINTL){
+    loadJs(getClientExperimentJSPath());
+}
+
+window.RDL = window.RDL || {};
+RDL.Experiments = {
+    ttcSearch: "69b3373c-81f1-4823-a38c-7151ae59992a",
+    skillsRecommendation: "a0c55e73-9fb9-476d-9a35-0d53ed9fa0f9",
+    modularEducation:"d69ae67a-01d7-4a19-aa8b-11560623ee87",
+    showCertLinkOnExpr:"309a4927-38ff-4cf4-b386-8de6108e5c6d",
+    expTTCResponsibilities: "6b35b74c-962c-4f4b-aa54-e200a9fbef2d",
+    studPersonalisation:"792e79b6-2d73-4292-97bc-38621da8daec",
+    studPersonalisationV2:"36644913-08c5-4b5f-b47a-32aebc136784",
+    resumeReview : "43da0ce1-4947-43c9-83f8-08a779aa50ad",  //conducted on dashboard for subscribed users only
+    workHistoryTTCChanges :"b7755f51-ac58-4466-a8f9-5d353a05ca22",
+    educationExperiment:"e65bfd8b-cb3d-41ee-ae84-17fcc3ce3375",
+    finalizeImprovement : "5a000c1d-9bf1-4735-ac56-a1a9c8e0c535",
+    auNzLocalization : "6242d372-e45c-4b3b-b240-0233d4699571",
+    onBoardingPersonalizedTip:"c982e259-9b41-4902-b530-7ba590e2c1a5",
+    fuzzyLogicExperiment:"6022df3c-04c1-448c-82ac-cdf04380b15d",
+    ttcAUNZExperiment: "784e0b0a-aa50-4b0c-a9ac-a51769ab3740",
+    contactScreenUpdates: "1ab02e09-3e65-45a6-90d0-c3a6a919a4ab",
+    PaginatedPrintPreview:"270e4704-5170-4f7a-874f-f6dc5e1e7113",
+    chooseTemplatewithFilter: "19805448-1986-4243-96d4-1626dbf94887",
+    EULocalization: "ce28dbd5-2d9d-452f-988e-8b49539671fc"
+}
+RDL.lazyLoad = true;
+RDL.sourceAppCD = '';
+RDL.IsauNzLocalization = false;
+RDL.onBoardingPersonalizedTip = false;
+RDL.onBoardingQuesChange = false;
+RDL.builderVersion = "rb wizard";
+RDL.previousDocuments = [];
+RDL.avoidLoggedinCss = false;
+RDL.showHeader = true;
+RDL.prevDocTabVisible = false;
+RDL.Localization = "";
+RDL.Definition_Tips = [];
+RDL.isLoadJS = false;
+RDL.strategyId = 25;
+RDL.Portal = getPortalInfo();
+if (location.host.split('.')[0] == "www" && RDL.Portal.newRelicId != "") {
+    addNewRelic(RDL.Portal.newRelicId);
+}
+RDL.fuzzyLogicExperiment = false;
+RDL.mapsClientKey = "gme-boldna";
+RDL.isloggedIn = false;
+RDL.gatriggeredFor = "";
+RDL.EnterBuildertriggered = false;
+RDL.pageLoaded = false;
+RDL.applyCardCss = false;
+RDL.showEducationTypePage =false;
+RDL.Paths = {};
+RDL.Paths.ResourcePath = getResourceUrl();
+window.globalCompVars = {};
+window.globalCompVars.BaseApiUrl = RDL.Paths.BaseApiUrl = getApiUrl();
+window.globalCompVars.BaseApiUrlV2 = RDL.Paths.BaseApiUrlV2 = getApiUrl(true);
+window.globalCompVars.BaseApiUrlV3 = RDL.Paths.BaseApiUrlV3 = getApiUrl(false,false,true);
+window.globalCompVars.EcomBaseApiUrl=RDL.Paths.EcomBaseApiUrl = getApiUrl(false,true);
+window.globalCompVars.emailId = '';
+RDL.Paths.BasePath = RDL.Portal.slug || RDL.Portal.basePath;
+RDL.Paths.ImageBasePath = window.RDL.Paths.ResourcePath + "images/desktop/";
+RDL.Paths.termsOfUseURL = '';
+RDL.Paths.privacyURL = '';
+RDL.Paths.signoutURL = '';
+RDL.Paths.mysettingsURL = '';
+RDL.Paths.contactUsURL = '';
+RDL.VisitorApiSetting = {};
+RDL.PortalSettings = {};
+RDL.Skins = {};
+RDL.segmentKey = '';
+RDL.guestUserID = null;
+RDL.guestUserCreated = false;
+RDL.isRefresh = true;
+RDL.isBack = true;
+RDL.isOverviewBack = false;
+RDL.isEditingFinished = false;
+RDL.loadedPageCalled = false;
+RDL.googleClientID = '';
+RDL.facebookClientID = '';
+RDL.scrollPos = 0;
+RDL.maintainScroll = false;
+RDL.Content = [];
+RDL.files = [];
+RDL.WindowH = window.innerHeight;
+RDL.Paths.signInURL = '';
+RDL.currentZoomValue = 1.5;
+RDL.dragCurrentZoomValue = 1.5;
+RDL.currentZoomIndex = 2;
+RDL.OnBoarding_Popup = true;
+RDL.isBlankName = false;
+RDL.isAnimationCompleted = false;
+RDL.isdragMove = true;
+RDL.isTablet = navigator.userAgent.match(/iPad/i) != null;
+RDL.countryDetails = { countryCode: "", continentCode: "", isEuropianContinent: false, city: "", state: "", isEEACountry: false };
+RDL.INVALID_ATTEMPT = 'fpcount';
+RDL.isRWZFlow = isRWZFlow; //To be done conditionally
+RDL.environmentURL = '';
+RDL.JobTitleContentDetails = { experimentID: "", variation: "" }
+RDL.EmployerContentDetails = { experimentID: "", variation: "" }
+RDL.isResumeCheckFromDashboard = false;
+RDL.isINTL = intlportal.indexOf(RDL.Portal.portalCd) > -1 ? true : false;
+RDL.defaultSkinColor = '';
+RDL.joshuaTree = !window.RDL.isINTL;
+RDL.saveContactOnBack = false;
+RDL.useAccounts = false;
+RDL.graduationYearUpdate = false;
+RDL.skillRecommendation = false;
+RDL.streamlinedSkills=false;
+RDL.floatingRegistration = false;
+RDL.reOrderCityZipState=false;
+RDL.autoSaveData = false;
+RDL.resetChannel = false;
+RDL.RefreshTTCOnAutosuggestBlur = false;
+RDL.showCertLinkOnExpr;
+enableGoogleScript = !window.RDL.isINTL;
+RDL.featureCodes = [];
+RDL.isCalledSaveJsonDoc = false;
+RDL.isPurgedUserScenario = false;
+RDL.isUpdateDocOnFinalize = false;
+RDL.studPersonalisation=0;
+RDL.showStudentPersonalisation = false;
+RDL.skipStudentScreen = false;
+RDL.studPersonalisationV2=0;
+RDL.workHistoryTTCChanges = 0;
+RDL.isSMSPopUpViewed = false;
+RDL.isRouteChangeforSMS = false;
+RDL.nativeLocalization={}
+RDL.INVALID_ATTEMPT = 'fpcount';
+RDL.isPageRefresh = true;
+RDL.updateDocForPhoto = true;
+RDL.lngDisabled = RDL.isINTL ? true :false;
+function getResourceUrl() {
+    var environment = window.location.host.split('.')[0];
+    var portalcd = (RDL.Portal.portalCd == "rna" || RDL.Portal.portalCd == "cln") ? "rna" : RDL.Portal.portalCd;
+
+    if ((RDL.Portal.rewriteBlobContent && !isLocal)) {
+        return window.location.protocol + "//" + window.location.hostname + "/blobcontent/" + portalcd + "/";
+    } 
+    if(portalcd === 'rna') {
+        if(environment != 'local')
+            return "https://"+window.location.host+"/blobcontent/rsm/";
+        else
+            return "https://lccontentdev.blob.core.windows.net/rsm/";
+    }
+    return (environment != "stg" && environment != "www") ? "https://lccontentdev.blob.core.windows.net/" + portalcd + "/" : "https://content.livecareer.com/" + portalcd + "/";
+}
+
+if (RDL.isTablet) {
+    document.body.classList.add("ipad");
+}
+RDL.defaultSkin = RDL.Portal.defaultSkin;
+RDL.selectedSkin = '';
+RDL.TTCSectionTypeCds = ["EXPR", "EDUC", "SKLL", "SUMM", "HILT", "ACTI", "CERT", "ACCM"];
+
+var dvFinished = document.getElementById("dvFinished");
+dvFinished.addEventListener("webkitAnimationEnd", animationFinished);
+dvFinished.addEventListener("animationend", animationFinished);
+function animationFinished() {
+    window.RDL.isAnimationCompleted = true;
+}
+RDL.OnBoardingSteps = (function (data) {
+    var result = {};
+    var steps = data || ["CHOOSE_TEMPLATE", "RESUME_OPTIONS", "NAME", "LOGIN", "CONGRATS"];
+    for (i = 0; i < steps.length; i++) {
+        result[steps[i]] = steps[i];
+    }
+    result.steps = steps;
+    return result;
+})();
+function closeAnimation() {
+    setTimeout(closeShortLoaderQualityBuilder, 100);
+    setTimeout(closeLongLoaderQualityBuilder, 100);
+}
+
+RDL.isNullOrWhitespace = function (input) {
+    if (input == null || input == undefined) return true;
+    return input.replace(/\s/g, '').length < 1;
+}
+
+RDL.createCookie = function (name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = " ; expires=" + date.toGMTString();
+    } else
+        expires = "";
+    document.cookie = name + "=" + value + expires + "; path=/;domain=." + RDL.Portal.url;
+}
+RDL.readCookie = function (name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+RDL.GetQueryString = function (field) {
+    var href = window.location.href;
+    var reg = new RegExp('[?&]' + field + '=([^&#]*)', 'i');
+    var string = reg.exec(href);
+    return string ? string[1] : null;
+};
+RDL.GetNewText = function (editorText, tempText) {
+    var div = $('<div>');
+    var con = $(editorText);
+    div.html(con);
+    var innerText = div.text();
+    if (innerText != tempText) {
+        $(div.children()[0]).text(tempText);
+        editorText = div.html();
+    }
+    return editorText;
+}
+
+RDL.LogError = function (errorMessage, componentStack, logAsInfo, docId) {
+    var mixpanelpropsVal = window.RDL.readCookie("mixpanelprops");
+    var mixPanelValObj = JSON.parse(unescape(mixpanelpropsVal));
+    var browserName = '';
+    var currentUrl = '';
+    if (mixPanelValObj) {
+        browserName = mixPanelValObj["$browser"];
+    }
+    currentUrl = window.location.href;
+    var errorObj = {
+        errorMessage: errorMessage,
+        componentStack: componentStack,
+        logAsInfo: logAsInfo,
+        docId: docId,
+        sourceAppCd: window.RDL.sourceAppCD,
+        productCD: RDL.PortalSettings.ConfigureProductCd,
+        deviceType: 'desktop',
+        browser: browserName,
+        currentUrl: currentUrl
+    }
+    fetch(window.globalCompVars.BaseApiUrlV2 + 'errors/log', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(errorObj)
+    })
+}
+
+RDL.LoadGoogleMapsScript = function (clientKey, channelKey, bLoadGoogleMapScript) {
+    if (RDL.countryDetails && RDL.countryDetails.countryCode == 'US' && (RDL.PortalSettings.ConfigurePortalCd == 'RNA' || RDL.PortalSettings.ConfigurePortalCd == 'CLN')) {
+        return;
+    }
+    bLoadGoogleMapScript = typeof (bLoadGoogleMapScript) != "undefined" ? bLoadGoogleMapScript : true;
+    if (bLoadGoogleMapScript) {
+        var env = window.location.host.split('.')[0];
+        env = env == "www" ? "" : "-qa";
+        channelKey = "rn-" + channelKey + env;
+        var mapsUrl = "//maps.googleapis.com/maps/api/js?client=@@clientKey&channel=@@channelKey&libraries=places";
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = mapsUrl.replace("@@clientKey", clientKey).replace("@@channelKey", channelKey);
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'googleMaps-js'));
+    }
+}
+
+RDL.replaceMapsChannel = function (channel) {
+    var gMapsElem = document.getElementById('googleMaps-js');
+    if (gMapsElem) {
+        var gmChannelKey = channel;
+        if (gMapsElem.getAttribute("src").indexOf(gmChannelKey) < 0) {
+            window.google = {};
+            gMapsElem.parentNode.removeChild(gMapsElem);
+            window.RDL.LoadGoogleMapsScript(RDL.mapsClientKey, gmChannelKey, enableGoogleScript);
+        }
+    }
+}
+
+RDL.OptimizelyEventPush = function (eventName) {
+    // ensures the optimizely object is defined globally using
+    window['optimizely'] = window['optimizely'] || [];
+
+    // sends a tracking call to Optimizely for the given event name. 
+    window['optimizely'].push({
+        type: "event",
+        eventName: eventName
+    });
+}
+
+RDL.Timer = (function () {
+    var time = 0;
+    var lastSaved = "Last Saved ";
+    var formattedTime = "";
+    var interval = null;
+
+    var init = function () {
+        interval = setInterval(currentTime, 60000);
+    }
+
+    var setTimerNode = function () {
+        var timer = document.getElementById("timer");
+        if (timer) {
+            timer.innerText = getFormattedTime();
+        }
+    }
+
+    var currentTime = function () {
+        time++;
+        setTimerNode();
+    }
+
+    var getFormattedTime = function () {
+        formattedTime = lastSaved + time;
+        if (time == 0) {
+            formattedTime = lastSaved + "Just Now";
+        }
+        else if (time == 1) {
+            formattedTime += " minute ago";
+        }
+        else if (time > 1 && time <= 59) {
+            formattedTime += " minutes ago";
+        }
+        else {
+            formattedTime = lastSaved + "Over an hour ago";
+        }
+        return formattedTime;
+    }
+
+    var reset = function () {
+        time = 0;
+        setTimerNode();
+        clearInterval(interval);
+        init();
+    }
+
+    return {
+        init: init,
+        getFormattedTime: getFormattedTime,
+        reset: reset
+    };
+}());
+
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function (searchString, position) {
+        position = position || 0;
+        return this.indexOf(searchString, position) === position;
+    };
+}
+String.prototype.insert = function (index, string) {
+    if (index > 0)
+        return this.substring(0, index) + string + this.substring(index, this.length);
+    else
+        return string + this;
+};
+
+var _tsa = {};
+
+var vstr = "",
+    userType = "",
+    url = "",
+    path = "",
+    isLoggedin = "";
+
+function getAnalyticsValues() {
+    vstr = window.RDL.readCookie("vstrType");
+    userType = vstr == null ? "New" : "Returning";
+    url = window.location.origin + window.location.pathname;
+    path = window.location.pathname.replace(window.RDL.Paths.BasePath, "");
+    if (path == "")
+        path = "/";
+    isLoggedin = window.RDL.readCookie(".AspNet.LCAuth") != null ? 'true' : 'false';
+}
+
+function showLoaderOverlay(hideLoaderLine) {
+    if (hideLoaderLine) {
+        document.getElementsByClassName("loader-line")[0].classList.add("d-none");
+    }
+    document.getElementById('overlayLoader').classList.remove('d-none');
+}
+
+function hideLoaderOverlay(hideLoaderLine) {
+    if (hideLoaderLine) {
+        document.getElementsByClassName("loader-line")[0].classList.remove("d-none");
+    }
+    document.getElementById('overlayLoader').classList.add('d-none');
+}
+
+RDL.preventKeys = function (event) {
+    if (event.which === 13) {
+        event.preventDefault();
+    }
+};
+RDL.TrackEvents = function (eventName, eventpropval, userid, islogin) {
+    if (window.RDL.isLoadJS && !RDL.noMixpanel) {
+        if (RDL.UserClaims && RDL.UserClaims.user_uid && RDL.UserClaims.user_uid != emptyGuid) {
+            if (eventpropval != null)
+                eventpropval["userId"] = RDL.UserClaims.user_uid;
+            else
+                eventpropval = { 'userId': RDL.UserClaims.user_uid };
+        }
+        if (typeof analytics != 'undefined' && typeof mixpanel != 'undefined' && typeof mixpanel.get_distinct_id != 'undefined') {
+            trackEvent(eventName, eventpropval, userid, islogin);
+            if(eventName == 'identify'){
+                GetMixpanelProperties();
+            }
+        }
+        else {
+            var TrackEventsInterval = setInterval(function () {
+                if (typeof analytics != 'undefined' && typeof mixpanel != 'undefined' && typeof mixpanel.get_distinct_id != 'undefined') {
+                    trackEvent(eventName, eventpropval, userid, islogin);
+                    if(eventName == 'identify'){
+                        GetMixpanelProperties();
+                    }
+                    clearInterval(TrackEventsInterval);
+                }
+            }, 100);
+        }
+    }
+};
+
+RDL.BuilderUsageTrackEvents = function (action, screenName, label, islogin, clickOption) {
+
+    var eventpropval = {}
+    if (clickOption) {
+        eventpropval = { 'action': action, 'builder type': 'resumes', 'screen name': screenName, 'click option': clickOption }
+    }
+    else {
+        eventpropval = { 'action': action, 'builder type': 'resumes', 'screen name': screenName }
+    }
+    RDL.TrackEvents('builder usage', eventpropval, null, islogin);
+};
+
+RDL.UpdateMixPanelCookieLCUK = function () {
+    try {
+        var mixPanelProps = RDL.readCookie("mixpanelprops");
+        if (mixPanelProps != null) {
+            mixPanelProps = unescape(mixPanelProps);
+            mixPanelProps = JSON.parse(mixPanelProps);
+            delete mixPanelProps.mp_name_tag;
+            delete mixPanelProps.id;
+            mixPanelProps = JSON.stringify(mixPanelProps);
+            mixPanelProps = escape(mixPanelProps);
+            RDL.createCookie("mixpanelprops", mixPanelProps);
+        }
+    } catch (e) {
+        console.log("Error in updating mixpanel cookie LCUK ")
+    }
+}
+
+function getOrUpdateMixPanelProps(){
+    if (RDL.readCookie("mixpanelprops") == null) {
+        GetMixpanelProperties();
+    }
+    else {
+        UpdateMixPanelURL();
+    }
+}
+
+RDL.AsyncSegTrack = function (isLoggedin) {
+    if (RDL.isLoadJS && !RDL.noMixpanel) {
+        if (typeof analytics != 'undefined' && typeof mixpanel != 'undefined' && typeof mixpanel.get_distinct_id != 'undefined') {
+            getOrUpdateMixPanelProps();
+            AsyncSegTrack(isLoggedin);
+        }
+        else {
+            var TrackEventsInterval = setInterval(function () {
+                if (typeof analytics != 'undefined' && typeof mixpanel != 'undefined' && typeof mixpanel.get_distinct_id != 'undefined') {
+                    getOrUpdateMixPanelProps();
+                    AsyncSegTrack(isLoggedin);
+                    clearInterval(TrackEventsInterval);
+                }
+            }, 100);
+        }
+    }
+}
+
+RDL.SHA256 = function (s) {
+    var chrsz = 8;
+    var hexcase = 0;
+    function safe_add(x, y) {
+        var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+        var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+        return (msw << 16) | (lsw & 0xFFFF);
+    }
+    function S(X, n) { return (X >>> n) | (X << (32 - n)); }
+    function R(X, n) { return (X >>> n); }
+    function Ch(x, y, z) { return ((x & y) ^ ((~x) & z)); }
+    function Maj(x, y, z) { return ((x & y) ^ (x & z) ^ (y & z)); }
+    function Sigma0256(x) { return (S(x, 2) ^ S(x, 13) ^ S(x, 22)); }
+    function Sigma1256(x) { return (S(x, 6) ^ S(x, 11) ^ S(x, 25)); }
+    function Gamma0256(x) { return (S(x, 7) ^ S(x, 18) ^ R(x, 3)); }
+    function Gamma1256(x) { return (S(x, 17) ^ S(x, 19) ^ R(x, 10)); }
+    function core_sha256(m, l) {
+        var K = new Array(0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5, 0xD807AA98, 0x12835B01, 0x243185BE, 0x550C7DC3, 0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7, 0xC19BF174, 0xE49B69C1, 0xEFBE4786, 0xFC19DC6, 0x240CA1CC, 0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA, 0x983E5152, 0xA831C66D, 0xB00327C8, 0xBF597FC7, 0xC6E00BF3, 0xD5A79147, 0x6CA6351, 0x14292967, 0x27B70A85, 0x2E1B2138, 0x4D2C6DFC, 0x53380D13, 0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85, 0xA2BFE8A1, 0xA81A664B, 0xC24B8B70, 0xC76C51A3, 0xD192E819, 0xD6990624, 0xF40E3585, 0x106AA070, 0x19A4C116, 0x1E376C08, 0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F, 0x682E6FF3, 0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208, 0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2);
+        var HASH = new Array(0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19);
+        var W = new Array(64);
+        var a, b, c, d, e, f, g, h, i, j;
+        var T1, T2;
+        m[l >> 5] |= 0x80 << (24 - l % 32);
+        m[((l + 64 >> 9) << 4) + 15] = l;
+        for (var i = 0; i < m.length; i += 16) {
+            a = HASH[0];
+            b = HASH[1];
+            c = HASH[2];
+            d = HASH[3];
+            e = HASH[4];
+            f = HASH[5];
+            g = HASH[6];
+            h = HASH[7];
+            for (var j = 0; j < 64; j++) {
+                if (j < 16) W[j] = m[j + i];
+                else W[j] = safe_add(safe_add(safe_add(Gamma1256(W[j - 2]), W[j - 7]), Gamma0256(W[j - 15])), W[j - 16]);
+                T1 = safe_add(safe_add(safe_add(safe_add(h, Sigma1256(e)), Ch(e, f, g)), K[j]), W[j]);
+                T2 = safe_add(Sigma0256(a), Maj(a, b, c));
+                h = g;
+                g = f;
+                f = e;
+                e = safe_add(d, T1);
+                d = c;
+                c = b;
+                b = a;
+                a = safe_add(T1, T2);
+            }
+            HASH[0] = safe_add(a, HASH[0]);
+            HASH[1] = safe_add(b, HASH[1]);
+            HASH[2] = safe_add(c, HASH[2]);
+            HASH[3] = safe_add(d, HASH[3]);
+            HASH[4] = safe_add(e, HASH[4]);
+            HASH[5] = safe_add(f, HASH[5]);
+            HASH[6] = safe_add(g, HASH[6]);
+            HASH[7] = safe_add(h, HASH[7]);
+        }
+        return HASH;
+    }
+    function str2binb(str) {
+        var bin = Array();
+        var mask = (1 << chrsz) - 1;
+        for (var i = 0; i < str.length * chrsz; i += chrsz) {
+            bin[i >> 5] |= (str.charCodeAt(i / chrsz) & mask) << (24 - i % 32);
+        }
+        return bin;
+    }
+    function Utf8Encode(string) {
+        string = string.replace(/\r\n/g, "\n");
+        var utftext = "";
+        for (var n = 0; n < string.length; n++) {
+            var c = string.charCodeAt(n);
+            if (c < 128) {
+                utftext += String.fromCharCode(c);
+            }
+            else if ((c > 127) && (c < 2048)) {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+        }
+        return utftext;
+    }
+    function binb2hex(binarray) {
+        var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+        var str = "";
+        for (var i = 0; i < binarray.length * 4; i++) {
+            str += hex_tab.charAt((binarray[i >> 2] >> ((3 - i % 4) * 8 + 4)) & 0xF) +
+                hex_tab.charAt((binarray[i >> 2] >> ((3 - i % 4) * 8)) & 0xF);
+        }
+        return str;
+    }
+    s = Utf8Encode(s);
+    return binb2hex(core_sha256(str2binb(s), s.length * chrsz));
+}
+
+function trackEvent(eventName, eventpropval, userid, islogin) {
+    getOrUpdateMixPanelProps();
+    TrackEvents(eventName, eventpropval, userid, islogin);
+}
+function UpdateMixPanelURL() {
+    try{
+    var mixpanelpropsVal = window.RDL.readCookie("mixpanelprops");
+    var mixPanelValObj = JSON.parse(unescape(mixpanelpropsVal));
+    if (mixPanelValObj["$current_url"] != window.location.href) {
+        mixPanelValObj["$current_url"] = window.location.href;
+        var flowName = { "flow name": RDL.builderVersion };
+        var mixpanelProperties = JSON.stringify(Object.assign(mixPanelValObj, flowName));
+        mixpanelProperties = excludeExperimentFromMixpanelCookie(mixpanelProperties);
+        window.RDL.createCookie("mixpanelprops", escape(mixpanelProperties));
+    }}
+    catch(err){
+        GetMixpanelProperties();
+    }
+}
+
+function GetMixpanelProperties() {
+    var mixpanelProperties = '';
+    try {
+        if (typeof mixpanel != 'undefined' && typeof mixpanel.get_distinct_id != 'undefined') {
+            mixpanel.register({ 'device type': 'desktop' });
+            var infoProperties = mixpanel._.info.properties();
+            var persistProperties = mixpanel.persistence.properties();
+            var flowName = { "flow name": RDL.builderVersion };
+            mixpanelProperties = JSON.stringify($.extend(infoProperties, persistProperties, flowName));
+            mixpanelProperties = excludeExperimentFromMixpanelCookie(mixpanelProperties);
+            RDL.createCookie("mixpanelprops", escape(mixpanelProperties));
+        }
+    }
+    catch (e) {
+        console.log('error in mixpanel properties fetching');
+    }
+}
+
+function getConfigPath() {
+    var path = '';
+    if (RDL.Portal.portalCd == "rna") {
+        if (RDL.isRWZFlow) {
+            path = 'config/rn/';
+        }
+        else {
+            path = 'rb/config/';
+        }
+    }
+    else if (RDL.Portal.portalCd == "cln") {
+        path = 'config/cln/'
+    }
+    else {
+        path = 'config/'
+    }
+
+    return path;
+}
+
+function getLocalizationPath() {
+    var path = '';
+    if (RDL.Portal.portalCd == "rna") {
+        if (RDL.isRWZFlow) {
+            path = 'localization/';
+        }
+        else {
+            path = 'rb/config/Resources/';
+        }
+    }
+    else if (RDL.Portal.portalCd == "cln") {
+        path = 'localization/'
+    }
+    else {
+        path = 'config/Resources/'
+    }
+
+    return path;
+}
+
+function getConfigUrl() {
+    var environment = window.location.host.split('.')[0];
+    var configName = "dev";
+    var baseUrl = window.RDL.Paths.ResourcePath + getConfigPath();
+    environment = RDL.environmentURL ? RDL.environmentURL : environment;
+    switch (environment) {
+        case "reg":
+        case "regression":
+            configName = "regression";
+            break;
+        case "stg":
+            configName = "stg";
+            break;
+        case "perf":
+            configName = "perf";
+            break;
+        case "www":
+            configName = "prod";
+            break;
+    }
+    var filename = "config." + configName + ".desktop.js?v=" + versionNumber;
+    return baseUrl + filename;
+}
+RDL.startSaveDocLoader = function (loadingText) {
+    var textNode = document.getElementsByClassName("progress-text")[0];
+    if (typeof loadingText == "string" && textNode) {
+        textNode.innerText = loadingText;
+    } else {
+        textNode.innerText = "Saving...";
+    }
+    document.getElementById("saveDocLoader").classList.remove("d-none");
+    // document.getElementsByClassName('progress_qb')[0].classList.remove("d-none");
+}
+
+RDL.closeSaveDocLoader = function () {
+    // document.getElementsByClassName('progress_qb')[0].classList.add("d-none");
+    //  document.getElementById("saveDocLoader").classList.add("d-none");
+}
+RDL.startPageLoader = function () {
+    document.getElementById("page-loader").classList.remove("invisible");
+}
+RDL.closePageLoader = function () {
+    document.getElementById("page-loader").classList.add("invisible");
+}
+
+function closeLongLoaderQualityBuilder() {
+    var loaderNode = document.getElementById("longLoader");
+    if (loaderNode) {
+        loaderNode.classList.add("d-none");
+        document.body.classList.remove("disable-scroll")
+    }
+
+}
+
+function closeShortLoaderQualityBuilder() {
+    var loaderNode = document.getElementById("shortLoader");
+    var loaderApp = document.getElementById("app");
+
+    if (loaderNode && loaderApp) {
+        loaderNode.classList.add("d-none");
+        loaderApp.classList.remove("blur");
+    }
+
+}
+function applyCssonCards(cards) {
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].classList.add("thumb-" + cards[i].parentElement.attributes["data-skincd"].value.toLowerCase());
+    }
+}
+function applyImageCss() {
+    var cards = document.getElementsByClassName('list-item-thumb');
+    if (window.RDL.applyCardCss && cards && cards.length > 0) {
+        applyCssonCards(cards);
+    }
+    else {
+        setTimeout(function (cards) {
+            applyImageCss();
+        }, 50);
+    }
+}
+
+function polyfillNodelistForeach() {
+    //polyfill to support foreach on NodeList
+    if (window.NodeList && !NodeList.prototype.forEach) {
+        NodeList.prototype.forEach = function (callback, thisArg) {
+            thisArg = thisArg || window;
+            for (var i = 0; i < this.length; i++) {
+                callback.call(thisArg, this[i], i, this);
+            }
+        };
+    }
+}
+
+function loadGTM(w, d, s, l, i) {
+    w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+            new Date().getTime(), event: 'gtm.js'
+    }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+            'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+}
+//End Google Tag Manager
+
+function loadJsWithKey(src, id, key) {
+    var f = document.createElement('script');
+    f.setAttribute("src", src);
+    f.setAttribute("id", id);
+    f.setAttribute("data-app-key", key);
+    if (typeof f != "undefined")
+        document.getElementsByTagName("head")[0].appendChild(f);
+}
+function loadFont() {
+    var aFont = document.createElement('link');
+    aFont.type = 'text/css';
+    aFont.rel = "stylesheet";
+    aFont.href = "https://fonts.googleapis.com/css?family=Alex+Brush|Italianno&display=swap";
+    document.head.appendChild(aFont);
+}
+function loadgtms() {
+    loadGTM(window, document, 'script', 'dataLayer', RDL.Portal.gtmKey1);
+    if(RDL.Portal.gtmKey2){
+        loadGTM(window, document, 'script', 'dataLayer', RDL.Portal.gtmKey2);
+    }    
+}
+RDL.LoadThirdPartyJS = function () {
+    if (window.jQuery) {
+        // Google Tag Manager On Page Load EB-784
+        loadgtms();
+    }
+    else {
+        var jqueryLoadTimer = setInterval(function () {
+            if (window.jQuery) {
+                clearInterval(jqueryLoadTimer);
+                // Google Tag Manager On Page Load EB-784
+                loadgtms();
+            }
+        }, 100);
+    }
+    RDL.isINTL && RDL.Portal.portalCd == "lde" && loadFont();
+}
+
+function checkSafariBrowser() {
+    if (navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1) {
+        document.body.classList.add('safari');
+        var head = document.head || document.getElementsByTagName('head')[0];
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        var css = '::-webkit-scrollbar{-webkit-appearance: none;width: 7px;}::-webkit-scrollbar-thumb {border-radius: 4px;background-color: rgba(0, 0, 0, .5);-webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);}';
+        style.appendChild(document.createTextNode(css));
+        head.appendChild(style);
+    }
+}
+function isMac() {
+    if (navigator.userAgent.match(/Mac OS/i))
+        return true;
+    else
+        return false;
+}
+/**** css class accroding to browser ****/
+var $html = document.getElementsByTagName('html')[0];
+var userAgent = navigator.userAgent,
+    isIE = /*@cc_on!@*/false || !!document.documentMode,
+    isEdge = !isIE && !!window.StyleMedia;
+var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+// isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+// isiPad = /(iPad)/g.test(navigator.userAgent);
+// if (isiPad) $html.classList.add('ipad');
+if (/MSIE/.test(userAgent) || /Trident/.test(userAgent)) {
+    $html.classList.add('ie');
+    if (/MSIE 10\.0/.test(userAgent)) $html.classList.add('ie10');
+    if (/rv:11\.0/.test(userAgent)) $html.classList.add('ie11');
+}
+// if (/iPad/.test(userAgent)) {
+//    $html.classList.add('ipad');
+// }
+if (isEdge) {
+    $html.classList.add('edge');
+}
+if (isChrome) {
+    $html.classList.add('chrome');
+}
+
+function setCountryDetails() {
+    callAjax(window.RDL.Paths.BaseApiUrl + 'user/countryclaims', "GET", true, true, function (data) {
+        if (data) {
+            RDL.countryDetails = JSON.parse(data);
+        }
+    });
+}
+function handleClaims(result, resolve) {
+    var data = JSON.parse(result);
+    RDL.UserClaims = data;
+    if(RDL.UserClaims){
+        RDL.UserClaims.email = RDL.UserClaims.email||RDL.UserClaims.user_name;
+    }
+    if (resolve)
+        resolve("");
+}
+function callAjax(url, method, async, withCredentials, callback, resolve, data, isskipTimestamp, isResolveOnFailure) {
+    var xmlhttp;
+    // compatible with IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onload = function () {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            if (callback)
+                if (resolve) {
+                    callback(xmlhttp.responseText, resolve);
+                }
+                else {
+                    callback(xmlhttp.responseText);
+                }
+        }
+        else{
+            if(isResolveOnFailure && callback){
+                callback();
+            }  
+        }
+    }
+    if (method == "GET" && !isskipTimestamp) {
+        if (url.indexOf('?') == -1)
+            url = url + "?v=" + new Date().getTime();
+        else
+            url = url + "&v=" + new Date().getTime();
+    }
+    xmlhttp.open(method, url, async);
+    if (withCredentials)
+        xmlhttp.withCredentials = true;
+
+    if (data) {
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send(data);
+    }
+    else {
+        xmlhttp.send();
+    }
+
+    xmlhttp.onerror = function (err) {
+        if (isResolveOnFailure) {
+            if (callback) {
+                callback();
+            }
+        }
+    };
+    xmlhttp.ontimeout = function (e) {
+        if (isResolveOnFailure) {
+            if (callback) {
+                callback();
+            }
+        }
+    };
+}
+
+function callAjaxTestBed(url, method, async, withCredentials, callback, resolve, data) {
+    var xmlhttp;
+    // compatible with IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onload = function () {
+        if (xmlhttp.readyState == 4 && (xmlhttp.status == 200 || xmlhttp.status == 404)) {
+            if (callback)
+                if (resolve) {
+                    callback(xmlhttp.responseText, resolve);
+                }
+                else {
+                    callback(xmlhttp);
+                }
+        }
+    }
+    xmlhttp.open(method, url, async);
+    if (withCredentials)
+        xmlhttp.withCredentials = true;
+
+    if (data) {
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send(data);
+    }
+    else {
+        xmlhttp.send();
+    }
+}
+
+
+RDL.Claims = function (isAsync, resolve, acctsclaims) {
+    if (RDL.useAccounts == true) {
+        if (acctsclaims && acctsclaims.user_uid != undefined) {
+            handleClaims(JSON.stringify(acctsclaims), resolve);
+        }
+        else {
+            var accountTimer = setInterval(function () {
+                if (typeof BOLD != 'undefined' && typeof BOLD.Accounts != 'undefined') {
+                    clearInterval(accountTimer);
+                    //Passing parameters for fixing slow build timne
+                    BOLD.Accounts.getClaims().then(function (data) {
+                        if (data.claims.user_uid != undefined) { handleClaims(JSON.stringify(data.claims), resolve) }
+                        else {
+                            var claims = "{\"user_uid\":null}";
+                            handleClaims(claims, resolve);
+                        };
+                    });
+                }
+            }, 50);
+        }
+    }
+    else {
+        callAjax(window.RDL.Paths.BaseApiUrlV2 + 'user/claims/' + RDL.Portal.portalId + '?urlReferrer=' + escape(document.referrer) + '&cookieEnabled=' + navigator.cookieEnabled + '&culture=' + RDL.Portal.culture
+            , "GET", isAsync, true, handleClaims, resolve);
+    }
+}
+var getFeaturesPromise = new Promise(function (resolve, reject) {
+
+    callAjax(window.RDL.Paths.BaseApiUrl + 'config/features/' + RDL.Portal.portalCd.toUpperCase() + '?includeInActiveFeatures=true', "GET", true, true, function (data) {
+        if (data && data != "null" && data != "") {
+            RDL.featureCodes = JSON.parse(data)
+                .filter(function (x) {
+                    return x.isActive == true;
+                }).map(function (item) {
+                    return item.featureCD;
+                });
+        }
+        resolve();
+    }, null, null, null, true);
+}).catch(function (err) {
+    return err;
+});
+
+function loadNativeLocalization(localizationUrl){
+    // localizationUrl = localizationUrl.replace('/'+RDL.countryDetails.countryCode.toLowerCase(),'');
+    return new Promise(function(resolve,reject){
+        callAjax(localizationUrl, 'GET', true, false, function(result){
+            var data = JSON.parse(result);
+            if(!data.localizedtext){
+                data = JSON.parse(data);
+            }
+            window.RDL.nativeLocalization = data.localizedtext;
+            if(RDL.nativeLocalization.cultureCd){
+                RDL.cultureCD = RDL.nativeLocalization.cultureCd;
+            }
+            if(RDL.nativeLocalization.acceptLanguage){
+                RDL.acceptLanguage = RDL.nativeLocalization.acceptLanguage;
+            }
+            resolve();
+        },resolve,null,true);
+    });
+}
+
+function checkBrowserCompatibility() {
+    var objAgent = navigator.userAgent;
+    var objfullVersion = '' + parseFloat(navigator.appVersion);
+    var objOffsetVersion;
+    var legacyEditorURL;
+    if (window.location.hostname) {
+        legacyEditorURL = window.location.protocol + "//" + window.location.hostname + '/information/unsupportedbrowsers.aspx';
+    }
+    else {
+        legacyEditorURL = window.location.origin + '/information/unsupportedbrowsers.aspx';
+    }
+    // In Microsoft internet explorer 
+    if ((objOffsetVersion = objAgent.indexOf("MSIE")) != -1) {
+        objfullVersion = objAgent.substring(objOffsetVersion + 5);
+        if (objfullVersion.substring(0, objfullVersion.indexOf(".")) <= 9) {
+            window.location = legacyEditorURL;
+        }
+    }
+    // In Safari 
+    else if ((objOffsetVersion = objAgent.indexOf("Safari")) != -1) {
+        objfullVersion = objAgent.substring(objOffsetVersion + 7);
+        if ((objOffsetVersion = objAgent.indexOf("Version")) != -1) {
+            objfullVersion = objAgent.substring(objOffsetVersion + 8);
+            if (objfullVersion.substring(0, objfullVersion.indexOf(".")) <= 8) {
+                window.location = legacyEditorURL;
+            }
+        }
+    }
+    var configPromise = new Promise(function (resolve, reject) {
+        callAjax(getConfigUrl(), 'GET', true, false, handleConfig, resolve, null, true);
+    })
+
+
+    Promise.all([getFeaturesPromise, configPromise]).then(function (data) {
+        if (RDL.featureCodes.indexOf("FUACC") != -1) {
+            RDL["useAccounts"] = true;
+            loadJs(RDL.accountsJSURL);
+        }
+        loadJs(getResourceUrl() + 'scripts/segment-io.js?v=' + versionNumber);
+        var claimsPromise = new Promise(function (resolve, reject) {
+            if (RDL.UserClaims && RDL.UserClaims.user_uid && RDL.UserClaims.user_uid != emptyGuid) {
+                resolve();
+            }
+            else {
+                RDL.Claims(true, resolve);
+            }
+        })
+
+         var countryClaimsPromise = new Promise(function (resolve, reject){
+            getCountryClaims().then(function(data) {
+                if(data) RDL.countryDetails=data;
+                else if (!data) {
+                    RDL.countryDetails = {  
+                                        countryCode: "US",
+                                        continentCode: "US",
+                                        isEuropianContinent: false,
+                                        isEEACountry: false,
+                                        city: "",
+                                        state: "",
+                                        zip: "",
+                                        ip: ""
+                                    }
+                }
+                if(RDL.GetQueryString("customcountry") || sessionStorage.getItem("customcountry")){                   
+                    var countryCDVal = RDL.GetQueryString("customcountry")                 
+                   if(countryCDVal){
+                    sessionStorage.setItem("customcountry",countryCDVal)
+                   }
+                   else if(sessionStorage.getItem("customcountry")){
+                       countryCDVal = sessionStorage.getItem("customcountry")
+                   }        
+                   RDL.countryDetails.countryCode = countryCDVal.toUpperCase();           
+                }
+                var localizationUrl = getLocalizationUrl();
+				// var NativelocalizationPromise = null;
+                // if(RDL.Portal.uselocalizationDiffFolder && RDL.countryDetails && availableCountryCDs.indexOf(RDL.countryDetails.countryCode.toLowerCase())>-1){
+                //     NativelocalizationPromise = loadNativeLocalization(localizationUrl);
+                //     localizationUrl = localizationUrl.replace('/'+RDL.countryDetails.countryCode.toLowerCase(),'');
+                // }
+				var localizationPromise = new Promise(function(resolve,reject){
+					callAjax(localizationUrl, 'GET', true, false, function(data){
+						handleLocalizationText(data,resolve);
+						resolve();
+					},null,null,true);
+				});
+				Promise.all([localizationPromise]).then(function(data){
+                    resolve();
+                });	                
+            });
+         }); 
+
+        Promise.all([claimsPromise, countryClaimsPromise]).then(function (data) {
+            RDL.claimsLoaded = true;
+            _tsa['accoundcd'] = window.RDL.VisitorApiSetting.AccountCode;
+
+            _tsa['pgcd'] = '';
+            _tsa['prcd'] = window.RDL.VisitorApiSetting.PRODUCT_CODE;
+            if (window.RDL.VisitorApiSetting.EnvMode != "PROD") {
+                _tsa['enmd'] = window.RDL.VisitorApiSetting.EnvMode;
+            }
+            _tsa['includeUseragent'] = true;
+            _tsa['includeGeolocation'] = false;
+            _tsa['isRewriteConfigured'] = true;
+            funcPointer = setInterval(callTrackingApi, 10);
+            (function (d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = window.RDL.VisitorApiSetting.JSURL;
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'visitor-jssdk'));
+
+            if (window.RDL.UserClaims.user_uid && window.RDL.UserClaims.user_uid != emptyGuid) { 
+                if (window.RDL.pageLoaded) {
+                    handlePostPageLaod();
+                }
+                else {
+                    var pageLoadTimer = setInterval(function () {
+                        if (window.RDL.pageLoaded) {
+                            clearInterval(pageLoadTimer);
+                            handlePostPageLaod();
+                        }
+                    }, 100);
+                }
+            }
+        })
+    });
+}
+
+function swapLocalization() {
+            for(var key in RDL.nativeLocalization){
+                RDL.Localization[key] = RDL.nativeLocalization[key]
+            }
+            initializeRendererLocalization();
+        if(RDL.countryDetails.countryCode.toLowerCase() == 'ca') window.RDL.isCALocalization = true; 
+}
+
+function conductLocalizationExperiment() {
+    return  new Promise(function (resolve, reject) {
+		if (RDL.Portal.localizationFeature || RDL.Portal.portalCd == "cln") {
+			if(availableCountryCDs.indexOf(RDL.countryDetails.countryCode.toLowerCase()) > -1){
+				swapLocalization();				
+			}
+        }
+        resolve();
+    });
+}
+
+function getCountryClaims() {
+    return new Promise(function(resolve,reject){
+        callAjax(window.RDL.Paths.BaseApiUrl + 'user/countryclaims', "GET", true, true, function (data) {  
+            if(data){
+                data= JSON.parse(data);
+            }          
+            resolve(data);
+        },null,null,null,true);
+    }).then(function(resp){
+        return resp;
+    }).catch(function(err){
+        return null;
+    });
+}
+
+function conductExperiment(experimentId, userId){
+    var url = getExperimentUrl(experimentId, userId);
+    var postObj = {
+        logTraits: true,
+        conductForOldUsers: false,
+        includeIterableIntegration: false,
+        culture: "en-US",
+        skipGoverning: true
+    }
+    return new Promise(function(resolve,reject){
+        callAjax(url, "POST", true, true, function (data) {  
+            if(data){
+                data= JSON.parse(data);
+            }          
+            resolve(data);
+        },resolve,JSON.stringify(postObj),null,true);
+    }).then(function(resp){
+        return resp;
+    }).catch(function(err){
+        return null;
+    });
+}
+function getExperimentUrl(experimentId, userId){
+    return window.RDL.Paths.BaseApiUrlV2 + 'users/' + userId+ '/experiments/' +experimentId +'/conduct'; 
+}
+
+function callTrackingApi() {
+    if (typeof TS != 'undefined') {
+        clearInterval(funcPointer);       
+        var trackPromise = TS.Track(_tsa['prcd'], RDL.PortalSettings.ConfigurePortalCd, _tsa['includeUseragent'], _tsa['includeGeolocation'], _tsa['isRewriteConfigured']);
+        var defaultPromise = new Promise(function (resolve, reject) {
+            setTimeout(resolve, 1500);
+
+        });
+        Promise.race([trackPromise, defaultPromise]).then(function (value) {
+            if (!window.RDL.UserClaims.user_uid || window.RDL.UserClaims.user_uid == emptyGuid) {
+                if (navigator.cookieEnabled) {
+                    if (window.RDL.GetQueryString('frmbldr')) {
+                        window.location = window.RDL.Paths.rootURL;
+                    } else {
+                        if (RDL.useAccounts) { handleGuestUser(); }
+                        else {
+                            window.location = window.RDL.Paths.rguURL + '?frmbldr=1';
+                        }
+                    }
+                } else window.location = window.RDL.Paths.rootURL;
+            }
+        });
+    }
+}
+
+function polyfillArrayFrom() {
+    Array.from = (function () {
+        var toStr = Object.prototype.toString;
+        var isCallable = function (fn) {
+            return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
+        };
+        var toInteger = function (value) {
+            var number = Number(value);
+            if (isNaN(number)) { return 0; }
+            if (number === 0 || !isFinite(number)) { return number; }
+            return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+        };
+        var maxSafeInteger = Math.pow(2, 53) - 1;
+        var toLength = function (value) {
+            var len = toInteger(value);
+            return Math.min(Math.max(len, 0), maxSafeInteger);
+        };
+
+        // The length property of the from method is 1.
+        return function from(arrayLike/*, mapFn, thisArg */) {
+            // 1. Let C be the this value.
+            var C = this;
+
+            // 2. Let items be ToObject(arrayLike).
+            var items = Object(arrayLike);
+
+            // 3. ReturnIfAbrupt(items).
+            if (arrayLike == null) {
+                throw new TypeError('Array.from requires an array-like object - not null or undefined');
+            }
+
+            // 4. If mapfn is undefined, then Let mapping be false.
+            var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+            var T;
+            if (typeof mapFn !== 'undefined') {
+                // 5. else
+                // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
+                if (!isCallable(mapFn)) {
+                    throw new TypeError('Array.from: when provided, the second argument must be a function');
+                }
+
+                // 5. b. If thisArg was supplied, Let T be thisArg; else Let T be undefined.
+                if (arguments.length > 2) {
+                    T = arguments[2];
+                }
+            }
+
+            // 10. Let lenValue be Get(items, "length").
+            // 11. Let len be ToLength(lenValue).
+            var len = toLength(items.length);
+
+            // 13. If IsConstructor(C) is true, then
+            // 13. a. Let A be the result of calling the [[Construct]] internal method 
+            // of C with an argument list containing the single item len.
+            // 14. a. Else, Let A be ArrayCreate(len).
+            var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+
+            // 16. Let k be 0.
+            var k = 0;
+            // 17. Repeat, while k < len… (also steps a - h)
+            var kValue;
+            while (k < len) {
+                kValue = items[k];
+                if (mapFn) {
+                    A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+                } else {
+                    A[k] = kValue;
+                }
+                k += 1;
+            }
+            // 18. Let putStatus be Put(A, "length", len, true).
+            A.length = len;
+            // 20. Return A.
+            return A;
+        };
+    }());
+
+}
+function handleAliasAndIdentify() {
+
+    var ga_tempValue = window.RDL.readCookie('_mp_id');
+    var mpKeyValue;
+    if (ga_tempValue) {
+        mpKeyValue = JSON.parse(unescape(ga_tempValue)).mp_key
+    }
+    var interval = setInterval(function () {
+        if (typeof analytics != 'undefined' && typeof mixpanel != 'undefined') {
+            var conductedExperiments = null;
+            try{
+                conductedExperiments = localStorage.getItem('conducted_experiments');
+            }
+            catch(err){
+                conductedExperiments = null;
+            }
+            if(!RDL.isINTL && RDL.Portal.portalCd == "rna" && conductedExperiments){
+                conductedExperiments = JSON.parse(conductedExperiments);
+                var newHIWExp =  conductedExperiments['187ed5e3-103a-4174-832b-686b51c7550f'];
+                if(newHIWExp){
+                    experimentTraits = experimentTraits == null ?{} :experimentTraits;
+                    experimentTraits["Experiment: How It Works Experiment"] = newHIWExp.variant == 1 ? "Baseline" : newHIWExp.variant == 2 ? "Variability Estimator" :"New How It Works";
+                }
+            }
+            clearInterval(interval);
+            if (mpKeyValue) {
+                analytics.alias(mpKeyValue);
+                setTimeout(function () {
+                    analytics.alias(RDL.UserClaims.user_uid, mpKeyValue);
+                    setTimeout(function () {
+                        analytics.identify(RDL.UserClaims.user_uid, experimentTraits);
+                    }, 1000);
+                }, 1000);
+            }
+            else {
+                analytics.alias(RDL.UserClaims.user_uid);
+                setTimeout(function () {
+                    analytics.identify(RDL.UserClaims.user_uid, experimentTraits);
+                }, 1000);
+            }
+
+
+        }
+    }, 50);
+
+}
+function polyfillClosestMatch(){
+    if (!Element.prototype.matches) {
+        Element.prototype.matches =
+          Element.prototype.msMatchesSelector || 
+          Element.prototype.webkitMatchesSelector;
+      }
+      
+      if (!Element.prototype.closest) {
+        Element.prototype.closest = function(s) {
+          var el = this;
+      
+          do {
+            if (Element.prototype.matches.call(el, s)) return el;
+            el = el.parentElement || el.parentNode;
+          } while (el !== null && el.nodeType === 1);
+          return null;
+        };
+      }
+}
+function initializeRendererLocalization(){
+    RDL.localizationResumeRenderer = {
+        "firstNamDefaultText": window.RDL.Localization.fName,
+        "lastNameDefaultText": window.RDL.Localization.lName,
+        "streetAddressDefaultText": window.RDL.Localization.streetAddress,
+        "cityDefaultText": window.RDL.Localization.city,
+        "stateDefaultText": window.RDL.Localization.state,
+        "zipDefaultText": window.RDL.Localization.zip,
+        "emailDefaultText": window.RDL.Localization.email,
+        "phoneDefaultText": window.RDL.PortalSettings.ConfigurePortalCd == 'LPL' ? '': window.RDL.Localization.phone,
+        "professionDefaultText": window.RDL.Localization.professionDefaultText,
+        "cellPhoneDefaultText": window.RDL.Localization.cPhone,
+        "skillDef": window.RDL.Localization.skllDefault,
+        "resumeTitleDefaultText": window.RDL.Localization.rsTitlDef,
+        "exRsmTitleDef": window.RDL.Localization.exRsTitlDef,
+        "exRsmTitleDef2": window.RDL.Localization.exRsTitl2Def,
+        "exRsmTitleDef3": window.RDL.Localization.exRsTitl3Def,
+        "editSectionText": window.RDL.Localization.editSection,
+        "dragText": window.RDL.Localization.drag,
+        "deleteText": window.RDL.Localization.delete,
+        "editText": window.RDL.Localization.edit,
+        "addSubSectionText": window.RDL.Localization.addSubSection,
+        "addNewSecDocText": window.RDL.Localization.addNewSecDoc,
+        "finalRename": window.RDL.Localization.finalRename,
+        "finalRenameErr": window.RDL.Localization.finalRenameErr,
+        "finalRenameCancel": window.RDL.Localization.btnCancel,
+        "suppInfoDefaultText": window.RDL.Localization.suppInfo,
+        "editPhoto_Text": window.RDL.Localization.editPhoto_Text,
+        "shortMonths": window.RDL.Localization.shortMonth,
+        "longMonths": getLongMonths(RDL.cultureCD),
+        "currentText": window.RDL.Localization.current_Text,
+        "toDate_text": window.RDL.Localization.toDate_text || '',
+        "address_Label": RDL.Localization.address_Label || '',
+        "email_Label": RDL.Localization.email_Label || '',
+        "phone_Label": RDL.Localization.phone_Label || '',
+        "countryDefaultText" : RDL.Localization.country_Label || ''
+    }
+}
+function handleLocalizationText(result, resolve) {
+    var data = JSON.parse(result);
+    if(!data.localizedtext)
+    {
+        data=JSON.parse(data);
+    }
+    window.RDL.Localization = data.localizedtext;
+    window.RDL.Definition_Tips = data.definition_tips;
+    window.RDL.localizedDocumentText = data.localizedtext.resumeNameLocalizedText ? data.localizedtext.resumeNameLocalizedText : "Resume";
+    initializeRendererLocalization();
+    if (resolve)
+        resolve("");
+}
+
+function getLongMonths(culture) {
+    var monthsLong = [""];
+    for (i = 0; i < 12; i++) {
+        var objDate = new Date(); objDate.setFullYear(objDate.getFullYear(), i, 1); //setting to first day of the month
+        var locale = culture.toLowerCase(), month = objDate.toLocaleString(locale, { month: "long" });
+        monthsLong.push(month.substr(0, 1).toUpperCase() + month.substr(1, month.length - 1));
+    }
+    return monthsLong;
+}
+
+RDL.isBaseRoute = (location.pathname == RDL.Paths.BasePath || location.pathname == RDL.Paths.BasePath + '/');
+function handlePostPageLaod() {
+    var docIdCookie = window.RDL.readCookie("DocumentID");
+    if (RDL.isBaseRoute && !docIdCookie
+        && RDL.GetQueryString('createnew') != 1
+        && RDL.GetQueryString('welcomeback') != 1
+        && RDL.GetQueryString('autorc') != 1
+        && RDL.GetQueryString('skincd') == null
+        && RDL.GetQueryString('docid') == null
+        && RDL.GetQueryString('fromambdemail') == null
+        && RDL.GetQueryString('ct') != 1
+        && window.RDL.UserClaims.role == "Guest"
+        && RDL.GetQueryString('frmlpwelcomeback')!=1) {
+        triggerHIWStage = true;
+        document.title = window.RDL.Localization.pTitleHiw;
+        setTimeout(function () {
+            if ((location.pathname == RDL.Paths.BasePath || location.pathname == RDL.Paths.BasePath + '/')) {
+                document.getElementById('howItWorks').classList.remove('d-none');
+            }
+            closeAnimation();
+        }, 3000);
+
+    } else {
+        RDL.startPageLoader();
+        setTimeout(function () {
+            closeAnimation();
+        }, 3000);
+    }
+    if (window.RDL.isRefresh) {
+        if (window.isNewOnboarding)
+            loadImageFiles();
+        window.RDL.CountryCode = window.RDL.UserClaims.countryCode;
+        window.RDL.isloggedIn = (window.RDL.UserClaims.role != "User") ? false : true;
+        if(!RDL.noMixpanel){
+            handleAliasAndIdentify();
+        }
+        window.RDL.isLoadJS = (!window.RDL.isImplementUserConsent ? true : window.RDL.isloggedIn
+            ? true : (window.RDL.readCookie("user-consent") == 1)) ? true : false;//true    
+        RDL.AsyncSegTrack(RDL.isloggedIn);
+        window.RDL.TrackEvents('enter builder', { 'builder type': 'resumes' }, null, window.RDL.isloggedIn);
+        loadJs(platFormJsUrl);
+        // Code to trigger Enter builder stage.
+        if (triggerHIWStage && window.RDL.UserClaims.user_uid && window.RDL.UserClaims.user_uid != emptyGuid) {
+            triggerHIWStage = false;
+            callAjax(window.RDL.Paths.BaseApiUrl + 'users/saveuserstages?userId=' + RDL.UserClaims.user_uid +
+                '&productCd=' + window.RDL.PortalSettings.ConfigureProductCd + "&userStageId=" + 25
+                + "&portalCd=" + window.RDL.PortalSettings.ConfigurePortalCd + "&strategyId=" + RDL.strategyId,
+                "PATCH", true, true,null,null,{});
+        }
+    }
+    //setCountryDetails();
+     !RDL.Portal.avoidloadingsvg &&  RDL.Skins.forEach(function (element) {
+        var img = document.createElement('img');
+        if (!isIE) {
+            img.src = RDL.Paths.ResourcePath + element.blobURL;
+        }
+        document.getElementById('afterLoadContent').appendChild(img);
+    });
+
+    RDL.loadFile();
+    var bodyDom = document.getElementsByTagName('body')[0];
+    if (bodyDom.classList.contains('no-scroll')) {
+        bodyDom.classList.remove('no-scroll')
+    }
+    if (RDL.GetQueryString('rx') == "1") {
+        bodyDom.classList.add('rex-view');
+    }
+    var sknCD = RDL.GetQueryString('skincd');
+    if (sknCD) {
+        RDL.SkinFromPortal = sknCD.toUpperCase(); //necessary to keep it in upper case
+    }
+    loadJs("https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js");
+    //loadJs("https://cdn.optimizely.com/js/" + RDL.Portal.optimizelyKey + ".js");
+    loadJs("https://apis.google.com/js/api.js?onload=loadPicker");
+    if(RDL.dropBoxDrive){
+        loadJsWithKey("https://www.dropbox.com/static/api/2/dropins.js", "dropboxjs", RDL.dropBoxDrive.key);    
+    }
+    callAjax(window.RDL.Paths.rootURL + window.RDL.Paths.BasePath + "/scripts/es6-shim.min.js", "GET", true, true, polyfillArrayFrom);
+    // callAjax("http://local.resume-now.com/build-resume/scripts/es6-shim.min.js" , "GET", true, true, polyfillArrayFrom);
+
+    applyImageCss();
+
+    checkSafariBrowser();
+    polyfillNodelistForeach();
+    polyfillClosestMatch();
+    loadJs(packageUrl);
+    if (window.RDL.isLoadJS)
+        window.RDL.LoadThirdPartyJS();
+}
+window.addEventListener("load", function () {
+    RDL.pageLoaded = true;
+});
+checkBrowserCompatibility();
+function handleConfig(result, resolve) {
+    var data = JSON.parse(result);
+    //window.RDL.Paths.BasePath = data.url_build_resume
+    RDL.Portal.gtmKey1 = data.gtmKey1;
+    RDL.Portal.gtmKey2 = data.gtmKey2;
+    RDL.enableInterceptModal = data.enableInterceptModal || false;
+    RDL.sourceAppCD = data.sourceAppCD;
+    RDL.Portal.optimizelyKey = data.optimizelyKey;
+    window.RDL.Paths.interceptLink = data.externalLinks.interceptLink;
+    window.RDL.Paths.BaseUrl = data.externalLinks.dashboardLink;
+    window.RDL.Paths.CDN_Path1 = data.externalLinks.cdnPath1;
+    window.RDL.Paths.CDN_Path2 = data.externalLinks.cdnPath2;
+    window.RDL.Paths.SellPageUrl = data.externalLinks.paymentLink;
+    window.RDL.Paths.AccountsURL = data.externalLinks.accountsURL;
+    window.RDL.Paths.termsOfUseURL = data.externalLinks.termsOfUseURL;
+    window.RDL.Paths.privacyURL = data.externalLinks.privacyURL;
+    window.RDL.Paths.rootURL = data.externalLinks.rootURL;
+    window.RDL.Paths.rguURL = data.externalLinks.rguURL;
+    window.RDL.Paths.contactUsURL = data.externalLinks.contactUs;
+    window.RDL.Paths.mysettingsURL = data.externalLinks.mySettings;
+    window.RDL.Paths.signoutURL = data.externalLinks.signOut;
+    window.RDL.Paths.signInURL = data.externalLinks.signInUrl;
+    window.RDL.Paths.documentHomeUrl = data.externalLinks.documentHome;
+    window.RDL.Paths.downloadReviewUrl = data.externalLinks.downloadReviewUrl;
+    window.RDL.Paths.intakeFormUrl = data.externalLinks.intakeFormUrl;
+    window.RDL.Paths.resumReviewUrl = data.externalLinks.resumReviewUrl;
+    RDL.PortalSettings.defaultPortalType = "3"
+    RDL.PortalSettings.ConfigurePortal = data.portalID
+    RDL.PortalSettings.ConfigurePortalCd = data.portalCD
+    RDL.PortalSettings.ConfigureProductId = data.productID
+    RDL.PortalSettings.ConfigureProductCd = data.productCD
+    RDL.useGoogleWidget = data.useGoogleWidget;
+    window.RDL.VisitorApiSetting.JSURL = data.externalLinks.visitorAPIUrl;
+    window.RDL.VisitorApiSetting.EnvMode = data.environment;
+    window.RDL.VisitorApiSetting.PRODUCT_CODE = data.productCD;
+    window.RDL.VisitorApiSetting.AccountCode = data.clientCD;
+    window.RDL.segmentKey = data.segmentKey;
+    window.RDL.googleClientID = data.googleLoginClientID;
+    window.RDL.facebookClientID = data.facebookAppId;
+    window.RDL.OnBoarding_Popup = data.variations.OnBoarding_Popup;
+    window.RDL.isTTCAddOrRemove = true;//data.variations.isTTCAddOrRemove;
+    window.RDL.Quality_Builder = data.variations.Quality_Builder;
+    window.RDL.enableNewRelic = data.enableNewRelic;
+    window.RDL.newRelicApplicationID = data.newRelicApplicationID;
+    window.RDL.customerServiceEmailId = data.customerServiceEmailId;
+    window.RDL.templateId = data.templateId ? data.templateId : "15";
+    window.RDL.steps = data.steps ? data.steps : undefined;
+    window.RDL.styleSheetName = data.styleSheetName ? data.styleSheetName : "RbtoHtml2";
+    window.RDL.styleSheetNameTxt = data.styleSheetNameTxt ? data.styleSheetNameTxt : "RBtoText";
+    window.RDL.styleSheetNameMultiColumn = data.styleSheetNameMultiColumn ? data.styleSheetNameMultiColumn : null;
+    window.RDL.skipSelectCV = window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LIT" || window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LBR" || window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LDE" || window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LNL" || window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LPL" || window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LPT";
+    RDL.Portal.activeExperiments = data.activeExperiments;
+    RDL.SkipLargeThumbnailScaling = window.RDL.PortalSettings.ConfigurePortalCd.toUpperCase() == "LPL";
+    RDL.Experiments = data.experiments && Object.keys(data.experiments).length > 0 ? data.experiments : RDL.Experiments;
+    RDL.arrSkinOrder=data.skinOrder;
+    
+    //  window.RDL.Quality_Builder = true;    
+    RDL.newRelicSamplingPercent = data.newRelicSamplingPercent || 100;      //Default set to 100%
+    window.RDL.disableAutoSuggestionOnStreet = data.variations.disableAutoSuggestionOnStreet;
+    if (data.enableNewRelic) {
+        if (!window.RDL.isINTL) {
+            addNewRelic(data.newRelicApplicationID);
+        } else {
+            addNewRelic(data.newRelicApplicationID, RDL.newRelicSamplingPercent);
+        }
+    }
+    segmentKey = data.segmentKey;
+    window.RDL.Localization = data.localization;
+    window.RDL.Definition_Tips = data.definition_tips;
+    window.RDL.Skins = data.skins;
+    window.RDL.roundPhotoSkins = "MLJ2 MLJ5 MLK7 MLL1 MLL2" ; 
+    window.RDL.date = (new Date(2017, 10, 23));
+    window.RDL.randomPhotoNumber = Math.random();
+    window.RDL.DebounceTime = data.variations.DebounceTime;
+
+    configLoaded = true;
+    window.RDL.isImplementUserConsent = data.enableUserConsent;
+    window.RDL.isV2TestEnabled = data.variations.isV2TestEnabled;
+    RDL.cultureCD = data.languageCulture;
+    RDL.acceptLanguage = "en-US";
+    RDL.TTCCulture = data.TTCCulture ? data.TTCCulture : data.languageCulture;
+    RDL.accountsJSURL = data.accountsJSURL;
+    RDL.googlePickerInfo = data.googleDrive;
+    window.RDL.dropBoxDrive = data.dropBoxDrive;
+    window.RDL.isDCTLEnabled = data.isDCTLEnabled ;
+    RDL.isNewTTCBaselined = data.isNewTTCBaselined || false;
+    RDL.isShowLoginDisclaimer = false;
+    RDL.isfrmlpWelcomeBack = false;
+    RDL.showUserOptinsCheckBox = false;
+    RDL.showhideTipBtn = false;
+    RDL.showStreetAddrOptionalText = false;
+    RDL.showEditorSwitchVariant = true;
+    RDL.showFinalizeTemplateOpen = false;
+    RDL.noMixpanel = data.noMixpanel || false;
+    if(RDL.isINTL){        
+        RDL.EULocalization = data.EULocalization ? 3 : 0 ;
+        RDL.showhideTipBtn = true;
+        RDL.showEditorSwitchVariant = false;
+        RDL.isShowLoginDisclaimer = true;
+        RDL.changeBtnPosition = true;
+        RDL.removeElementsFromTemplate = [".rnaphonefield"] ;
+        if(RDL.Portal.isOmnibusBaselined){
+            RDL.showhideTipBtn = false;
+            RDL.showStreetAddrOptionalText = true;
+            RDL.showEditorSwitchVariant = true;
+            RDL.showFinalizeTemplateOpen = true;
+        }     
+    }
+    if(RDL.arrSkinOrder){
+        window.RDL.Skins = window.RDL.Skins ? window.RDL.Skins.sort(function(a, b) {
+            return RDL.arrSkinOrder.indexOf(a.id) - RDL.arrSkinOrder.indexOf(b.id)
+        }) : window.RDL.Skins;
+    }
+    RDL.skinsCategory = data.skinsCategory;
+    RDL.captchaSiteKey = data.captchaSiteKey;
+    RDL.qualtricsSurveyLink = data.qualtricsSurveyLink;
+    RDL.showGeneralSkills = data.showGeneralSkills;    
+    RDL.skinsCategoryExp = data.skinsCategoryExp;
+    RDL.skinsCategoryExp2 = data.skinsCategoryExp2;
+    RDL.newSkins = data.newSkins || [];  
+    RDL.spellCheckImprovemnts = data.spellCheckImprovemnts || false ;
+    window.RDL.skinsExp = data.skinsExp || []; 
+    RDL.trackExpLevel = data.trackExpLevel || false ;
+    if(data.DisableGAIntegration){
+        RDL.integrations ={
+            "Google Analytics": false
+        };
+    }
+    RDL.addDocIDOnFinalize = data.addDocIDOnFinalize;
+    resolve("");    
+}
+function getLocalizationUrl() {   
+    var environment = window.location.host.split('.')[0];
+    var configName = !RDL.isINTL ?"qa" : "dev"; 
+    var baseUrl = window.RDL.Paths.ResourcePath + getConfigPath() + "Resources/";
+    if(RDL.Portal.useDiffResourcePath){
+        baseUrl = window.RDL.Paths.ResourcePath + getLocalizationPath();
+    }
+    environment = RDL.environmentURL ? RDL.environmentURL : environment;
+    switch (environment) {
+        case "reg":
+        case "regression":
+            // configName = "regression";
+            configName = "reg";
+            break;
+        case "stg":
+            configName = "stg";
+            break;
+        case "perf":
+            configName = "perf";
+            break;
+        case "www":
+            configName = "prod";
+            break;
+    }
+
+    var countryCD = "";
+    window.RDL.isCALocalization = false;
+    var filename = configName + countryCD + "/localization.json?v=" + versionNumber;
+    if(RDL.Portal.uselocalizationDiffFolder && RDL.countryDetails && availableCountryCDs.indexOf(RDL.countryDetails.countryCode.toLowerCase())>-1){
+        filename = configName + '/' + RDL.countryDetails.countryCode.toLowerCase() + "/localization.json?v=" + versionNumber;
+    }
+    return baseUrl + filename;
+}
+
+function excludeExperimentFromMixpanelCookie(mixpanelProperties) {
+    var properties = {};
+    var data = JSON.parse(mixpanelProperties);
+    Object.keys(data).forEach(function (key, index) {
+        if (key.indexOf('Experiment:') == -1) {
+            properties[key] = data[key];
+        }
+    });
+    return JSON.stringify(properties);
+}
+
+RDL.loadFile = function () {
+    if (RDL.Skins.filter) {
+        handleSkins();
+    }
+    else {
+        var skinTimer = setInterval(function () {
+            if (RDL.Skins.filter) {
+                clearInterval(skinTimer);
+                handleSkins();
+            }
+        }, 100);
+    }
+}
+function handleSkins() {
+    RDL.Skins.filter(function (skin) {
+        return skin.skinCD !== RDL.selectedSkin;
+    }).forEach(function (skin) {
+        var skinName = skin.skinCD + '.htm';
+        RDL.getSkinHtml(skinName, true);
+    });
+}
+function getSkinHtmlPath() {
+    var skinPath = '/config/';
+
+    if (RDL.isINTL && RDL.Portal.rewriteBlobContent == false) {
+        skinPath = environment === "www" || environment === "stg" ? "https://configservicestorage.blob.core.windows.net/livecareerrepository/" : "https://configservicestoragetest.blob.core.windows.net/livecareerrepository/";
+    }
+    else {
+        if (environment == 'local') {
+            skinPath = "https://configservicestoragetest.blob.core.windows.net/livecareerrepository/";
+        }
+    }
+    return skinPath;
+}
+
+RDL.getSkinHtml = function (skinName, isAsyncTrue) {
+    var url = getSkinHtmlPath() + skinName;
+    callAjax(url, 'GET', isAsyncTrue ? true : false, false, function (data) {
+        var parser = new DOMParser();
+        var htmlDoc = parser.parseFromString(data, "text/html");
+        //EB-11749 :These multiple text comparisions are part of a temporary change.
+        //Once the changes are done at skin level, this will be removed.
+        //This replaces the word 'to' between from and to dates with its localized text
+        RDL.isINTL && RDL.LocalizeFromEndDateToWordInSkin(htmlDoc);
+        RDL.files[skinName] = htmlDoc;
+    });
+}
+RDL.LocalizeFromEndDateToWordInSkin = function (htmlDoc) {
+    try{
+        if(RDL.localizationResumeRenderer.toDate_text){
+            htmlDoc.querySelectorAll("span[dependency='JSTD+EDDT'],span[dependency='GRST+GRED']").forEach(function(spanNode){
+                if(spanNode && spanNode.innerText && spanNode.innerText.trim() &&
+                    (spanNode.innerText.trim().toLowerCase() == "to" || 
+                        spanNode.innerText.trim().toLowerCase() == "a" || 
+                        spanNode.innerText.trim().toLowerCase() == "à")){
+                            spanNode.innerText = spanNode.innerText.replace(spanNode.innerText.trim(),RDL.localizationResumeRenderer.toDate_text);
+                        }
+                });
+        }
+        if (RDL.localizationResumeRenderer.address_Label) {
+            htmlDoc.querySelectorAll("span[class='xslt_static_change'").forEach(function (spanNode) {
+                if (spanNode && spanNode.innerText && spanNode.innerText.trim()) {
+                    if (spanNode.innerText.trim().toLowerCase() == "address") {
+                        spanNode.innerText = spanNode.innerText.replace(spanNode.innerText.trim(), RDL.localizationResumeRenderer.address_Label);
+                    }
+                    if (spanNode.innerText.trim().toLowerCase() == "phone") {
+                        spanNode.innerText = spanNode.innerText.replace(spanNode.innerText.trim(), RDL.localizationResumeRenderer.phone_Label);
+                    }
+                    if (spanNode.innerText.trim().toLowerCase() == "email") {
+                        spanNode.innerText = spanNode.innerText.replace(spanNode.innerText.trim(), RDL.localizationResumeRenderer.email_Label);
+                    }
+                }
+            });
+        }
+    } catch(error){
+        console.log(error);
+    }
+}
+
+RDL.getTemplateFromSkin = function (skin) {
+    var skinCD = skin || (RDL.selectedSkin || RDL.defaultSkin);
+    var template = RDL.files[skinCD + '.htm'];
+    if (!template) {
+        RDL.getSkinHtml(skinCD + '.htm', false);
+        template = RDL.files[skinCD + '.htm'];
+        if (!template) {
+            template = RDL.files[RDL.defaultSkin + '.htm'];
+        }
+    }
+    return template;
+}
+RDL.isMultiColumnSkin = function (skinCD) {
+    skinCD = skinCD || (RDL.selectedSkin || RDL.defaultSkin);
+    var skin = RDL.Skins.find(function (x) { return x.id == skinCD });
+    return skin && skin.isMultiColumn ? true : false;
+}
+// Add Browser/Device specific classes
+var $html = document.getElementsByTagName('html')[0];
+var userAgent = navigator.userAgent.toLowerCase(),
+    isIE = /*@cc_on!@*/false || !!document.documentMode,
+    isEdge = !isIE && !!window.StyleMedia;
+if (/MSIE/.test(userAgent) || /Trident/.test(userAgent)) {
+    $html.classList.add('ie');
+    if (/MSIE 10\.0/.test(userAgent)) $html.classList.add('ie10');
+    if (/rv:11\.0/.test(userAgent)) $html.classList.add('ie11');
+}
+if (/firefox/.test(userAgent)) {
+    $html.classList.add('firefox');
+}
+
+if (!/safar/.test(userAgent) && /chrome/.test(userAgent)) {
+    $html.classList.add('safari');
+}
+
+if (/iPad/.test(userAgent)) {
+    $html.classList.add('ipad');
+}
+
+if (isEdge) {
+    $html.classList.add('edge');
+}
+
+function termConditions(event) {
+    event.preventDefault();
+    if (window.RDL.isINTL) {
+    window.open('/information/termsofuse.aspx');
+    }
+    else
+    {
+        window.open('/terms-of-use');
+    }
+    //window.open('/terms-of-use', 'livecareer', 'width=780,height=550,scrollbars=1,toolbar=0,resizable=1,menubar=0');
+}
+function privacyPolicy(event) {
+    event.preventDefault();
+    if (window.RDL.isINTL) {
+        window.open('/information/privacy.aspx');
+        }
+    else
+        {
+            window.open('/privacy-policy');
+        }
+    // window.open('/privacy-policy', 'livecareer', 'width=780,height=550,scrollbars=1,toolbar=0,resizable=1,menubar=0');
+}
+
+if (typeof Object.assign != 'function') {
+    // Must be writable: true, enumerable: false, configurable: true
+    Object.defineProperty(Object, "assign", {
+        value: function assign(target, varArgs) { // .length of function is 2
+            'use strict';
+            if (target == null) { // TypeError if undefined or null
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+
+            var to = Object(target);
+
+            for (var index = 1; index < arguments.length; index++) {
+                var nextSource = arguments[index];
+
+                if (nextSource != null) { // Skip over if undefined or null
+                    for (var nextKey in nextSource) {
+                        // Avoid bugs when hasOwnProperty is shadowed
+                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                            to[nextKey] = nextSource[nextKey];
+                        }
+                    }
+                }
+            }
+            return to;
+        },
+        writable: true,
+        configurable: true
+    });
+}
+function getGAClientId() {
+    var clientId = "";
+    if (typeof ga != "undefined") {
+        window.ga && ga(function (tracker) {
+            clientId = tracker.get('clientId');
+        });
+    }
+    return clientId;
+}
+
+function createOrUpdateRuntestCookie(experimentID,variant){
+    var runtestCookie=RDL.readCookie("runtest");
+    if(runtestCookie){
+        var isExperimentExist = runtestCookie.indexOf(experimentID + '_') > -1;
+        if(!isExperimentExist)
+            RDL.createCookie("runtest", runtestCookie+','+experimentID+'_'+variant);
+    }
+    else{
+        RDL.createCookie("runtest", experimentID+'_'+variant);
+    }
+}
+function getExperimentVariantFromCookie(experimentID)
+{
+    var variant=0;
+    var runtestCookie=RDL.readCookie("runtest");
+    if(runtestCookie)
+    {
+        var experiment = runtestCookie.split(',').filter(function (i) {
+            return i.indexOf(experimentID + '_') != -1;
+          });
+        if(experiment && experiment.length>0)
+        {
+            var varaitnDetails=experiment[0].split('_');
+            if(varaitnDetails.length==2)
+                variant=experiment[0].split('_')[1];
+        }
+    }
+    return variant;
+}
+
+function getPortalInfo() {
+    var domain = window.location.host.split(':')[0].substr(window.location.host.indexOf('.') + 1);
+    var portalCd = null;
+    var portalUrl = null;
+    var primaryGTMCode = null;
+    var secondaryGTMCode = null;
+    var newRelicId = "";
+    var useExperienceRouting = false;
+    var uselocalizationDiffFolder = false;
+    var useFileNamingConvention = false;
+    var preventSpellCheckFreeze = false;
+    var removeOptionsCall=false;
+    var dontCapitalizeCompany = false;
+    var dontCapitalizeCompany = false;
+    var useDiffResourcePath= false;
+    var localizationFeature = false;
+    var setDegreeCharLimit = false;
+    var avoidloadingsvg = false;
+    var removeVulnerableText = false;
+    var isOmnibusBaselined = false;
+    var rewriteBlobContent = false;
+    var useTipPageRouting=false;
+    switch (domain) {
+        case "resume-now.com":
+            portalCd = "rna";
+            portalUrl = "resume-now.com";
+            basePath = "/build-resume";
+            gtmKey1 = "GTM-58RFZZ9";
+            gtmKey2 = "GTM-PG88T9B";
+            defaultSkin = "CNT4";
+            portalId = "13";
+            activeExperiments = [];
+            culture = "en-US";
+            newRelicId = "13437370";
+            useExperienceRouting = true;
+            uselocalizationDiffFolder = true;
+            useFileNamingConvention=true;
+            preventSpellCheckFreeze = true;
+            removeOptionsCall=true;
+            dontCapitalizeCompany = true;
+            useDiffResourcePath =true;
+            localizationFeature =true;
+            setDegreeCharLimit = true;
+            avoidloadingsvg = true;
+            removeVulnerableText = true;
+            useTipPageRouting = true;
+            break;
+        case "livecareer.co.uk":
+            portalCd = "luk";
+            portalUrl = "livecareer.co.uk";
+            basePath = "/build-cv";
+            gtmKey1 = "GTM-58RFZZ9";
+            gtmKey2 = "GTM-PG88T9B";
+            defaultSkin = "MLI8";
+            portalId = "19";
+            activeExperiments = [];
+            culture = "en-GB";
+            newRelicId = "16428903";
+            useFileNamingConvention=true;
+            isOmnibusBaselined = true;
+            rewriteBlobContent = true;
+            removeOptionsCall = false;
+			removeVulnerableText = true;
+			preventSpellCheckFreeze = true;
+            break;
+        case "livecareer.fr":
+            portalCd = "lfr";
+            portalUrl = "livecareer.fr";
+            basePath = "/creer-cv";
+            gtmKey1 = "GTM-KC2L347";
+            gtmKey2 = "GTM-KKH5D67";
+            defaultSkin = "FCN2";
+            portalId = "21";
+            activeExperiments = [];
+            culture = "fr-FR";
+            newRelicId = "242296014";
+            useFileNamingConvention=true;
+            isOmnibusBaselined = true;
+            rewriteBlobContent = true;
+            removeOptionsCall = true;
+			removeVulnerableText = true;
+			preventSpellCheckFreeze = true;
+            break;
+        case "livecareer.es":
+            portalCd = "les";
+            portalUrl = "livecareer.es";
+            basePath = "/crear-cv";
+            gtmKey1 = "GTM-MNPFQ6L";
+            gtmKey2 = "GTM-PBL3F6X";
+            defaultSkin = "MLL2";
+            portalId = "22";
+            activeExperiments = [];
+            culture = "es-ES";
+            newRelicId = "135377353";
+            rewriteBlobContent = true;
+            removeOptionsCall = false;
+            removeVulnerableText = true;
+            useFileNamingConvention=true;
+            isOmnibusBaselined = true;
+            break;
+        case "livecareer.it":
+            portalCd = "lit";
+            portalUrl = "livecareer.it";
+            basePath = "/crea-cv";
+            gtmKey1 = "GTM-PK8RTNS";
+            gtmKey2 = "GTM-P2LSPPN";
+            defaultSkin = "FCN2";
+            portalId = "23";
+            activeExperiments = [];
+            culture = "it-IT";
+            newRelicId = "242295863";
+            rewriteBlobContent = true;
+            removeOptionsCall = true;
+			removeVulnerableText = true;
+            break;
+        case "livecareer.de":
+            portalCd = "lde";
+            portalUrl = "livecareer.de";
+            basePath = "/erstellen-lebenslauf";
+            gtmKey1 = "GTM-WJJ7BD";
+            gtmKey2 = "GTM-WJJ7BD";
+            defaultSkin = "MLC5";
+            portalId = "24";
+            activeExperiments = [];
+            culture = "de-DE";
+            newRelicId = "138905757";
+            useFileNamingConvention=true;
+            isOmnibusBaselined = true;
+            rewriteBlobContent = true;
+            removeOptionsCall = true;
+			removeVulnerableText = true;
+            break;
+        case "livecareer.com.br":
+            portalCd = "lbr";
+            portalUrl = "livecareer.com.br";
+            basePath = "/crio-cv";
+            gtmKey1 = "";
+            gtmKey2 = "";
+            defaultSkin = "FCN2";
+            portalId = "80";
+            activeExperiments = [];
+            culture = "pt-BR";
+            newRelicId = "74627029";
+            removeVulnerableText = true;
+            break;
+        case "cover-letter-now.com":
+            portalCd = "cln";
+            portalUrl = "cover-letter-now.com";
+            basePath = "/build-resume";
+            gtmKey1 = "GTM-57GTHK3";
+            gtmKey2 = "GTM-5JZJ74F";
+            defaultSkin = "CNT4";
+            portalId = "14";
+            activeExperiments = [];
+            culture = "en-US";
+            newRelicId = "13438482";
+            useExperienceRouting = true;
+            uselocalizationDiffFolder = true;
+            preventSpellCheckFreeze = true;
+            useFileNamingConvention=true;
+            removeOptionsCall=true;
+            dontCapitalizeCompany = true;
+            useDiffResourcePath =true;
+            localizationFeature =true;
+            setDegreeCharLimit = true;
+            avoidloadingsvg = true;
+            removeVulnerableText = true
+            break;
+        case "livecareer.nl":
+            portalCd = "lnl";
+            portalUrl = "livecareer.nl";
+            basePath = "/maken-cv";
+            gtmKey1 = "GTM-WJJ7BD";
+            gtmKey2 = "GTM-WJJ7BD";
+            defaultSkin = "FCN2";
+            portalId = "25";
+            activeExperiments = [];
+            culture = "nl-NL";
+            newRelicId = "138904734";
+            useFileNamingConvention = true;
+            isOmnibusBaselined = true;
+            rewriteBlobContent = true;
+            removeOptionsCall = true;
+			removeVulnerableText = true;
+            break;
+        case "livecareer.pl":
+            portalCd = "lpl";
+            portalUrl = "livecareer.pl";
+            basePath = "/tworz-zyciorys";
+            gtmKey1 = "";
+            gtmKey2 = "";
+            defaultSkin = "MLF4";
+            portalId = "26";
+            activeExperiments = [];
+            culture = "pl-PL";
+            newRelicId = "138900332";
+            rewriteBlobContent = true;
+            removeOptionsCall = false;
+			removeVulnerableText = true;
+            break;
+        case "livecareer.pt":
+            portalCd = "lpt";
+            portalUrl = "livecareer.pt";
+            basePath = "/criar-curriculo";
+            gtmKey1 = "";
+            gtmKey2 = "";
+            defaultSkin = "FCN2";
+            portalId = "28";
+            activeExperiments = [];
+            culture = "pt-PT";
+            newRelicId = "138902943";
+            useFileNamingConvention = true;
+            isOmnibusBaselined = true;
+            rewriteBlobContent = true;
+            removeOptionsCall = true;
+			removeVulnerableText = true;
+            break;
+    }
+
+    return { portalCd: portalCd, url: portalUrl, slug: basePath, gtmKey1: gtmKey1, gtmKey2: gtmKey2, defaultSkin: defaultSkin, portalId: portalId, activeExperiments: activeExperiments, culture: culture, newRelicId: newRelicId, useExperienceRouting:useExperienceRouting, uselocalizationDiffFolder: uselocalizationDiffFolder, preventSpellCheckFreeze: preventSpellCheckFreeze,useFileNamingConvention:useFileNamingConvention,removeOptionsCall:removeOptionsCall,dontCapitalizeCompany:dontCapitalizeCompany,useDiffResourcePath:useDiffResourcePath,localizationFeature:localizationFeature,setDegreeCharLimit : setDegreeCharLimit,avoidloadingsvg : avoidloadingsvg , removeVulnerableText : removeVulnerableText ,isOmnibusBaselined:isOmnibusBaselined, rewriteBlobContent: rewriteBlobContent,useTipPageRouting:useTipPageRouting}; 
+}
+
+RDL.isDisableTest = RDL.readCookie('disabletests') == 1;
+if (RDL.isDisableTest == null && window.RDL.GetQueryString('disabletests') && window.RDL.GetQueryString('disabletests') > 0) {
+    RDL.isDisableTest = true;
+}
+
+RDL.sectionCodeMapping={
+    'HILT': 'Skills',
+    'CNTC': 'Contact',
+    'SUMM': 'Summary',
+    'EDUC': 'Education and Training',
+    'EXPR': 'Experience'
+}
+
+function handleGuestUser() {
+    var timerStart=0;
+    var TrackAccountsInterval = setInterval(function () {
+        if (typeof BOLD != 'undefined' && typeof BOLD.Accounts != 'undefined' 
+        && ((typeof analytics != 'undefined' && typeof mixpanel != 'undefined' 
+        && typeof mixpanel.get_distinct_id != 'undefined') || timerStart>30 || RDL.noMixpanel)) {
+            BOLD.Accounts.createGuest(window.RDL.PortalSettings.ConfigureProductCd, null, window.location.href).then(function (guest) {
+                //"https://local.resume-now.com:8080"
+                if (!(window.location.pathname == (window.RDL.Paths.BasePath + "/") || window.location.pathname == (window.RDL.Paths.BasePath)) ) {
+                    window.location = window.RDL.Paths.rootURL + window.RDL.Paths.BasePath;
+                }
+                var claimsPromise = new Promise(function (resolve, reject) {
+                    RDL.Claims(true, resolve, guest.claims);
+                })
+                claimsPromise.then(function (data) {
+                    handlePostPageLaod();
+                });                
+            });
+            clearInterval(TrackAccountsInterval);
+        }
+        timerStart++;
+    }, 100);
+}
+
+sessionStorage.removeItem("isAutoSave");

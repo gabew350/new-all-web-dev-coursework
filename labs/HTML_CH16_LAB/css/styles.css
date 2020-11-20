@@ -1,0 +1,79 @@
+h1 {font-size: 120%;
+    color:blue;
+    transition: font-size 2s ease-out 1s,
+                color 2s ease-in 1s;}
+    h1:hover{cursor: pointer;
+    font-size: 180%;
+color: red;}
+
+#accordion div{overflow: hidden;
+   height: 0;
+   transition: height 2s ease-in-out;}
+ #accordion div:target{height: 120px;}
+ div {
+    width: 100px;
+    height: 100px;
+    background: red;
+    transition: width 2s;
+  }
+  
+  div:hover {
+    width: 300px;
+  }
+  
+  h3 {
+    width: 100px;
+    height: 100px;
+    background: red;
+    transition: width 2s, height 4s;
+  }
+  
+  h3:hover {
+    width: 300px;
+    height: 300px;
+  }
+  div {
+    width: 100px;
+    height: 100px;
+    background-color: red;
+    animation-name: example;
+    animation-duration: 4s;
+    filter: saturate(80%);
+  }
+  
+  @keyframes example {
+    from {background-color: red;}
+    to {background-color: yellow;}
+  }
+  h5 {
+    width: 100px;
+    height: 100px;
+    background-color: red;
+    animation-name: example;
+    animation-duration: 4s;
+    filter: brightness(30%);
+  }
+  
+  @keyframes example {
+    0%   {background-color: red;}
+    25%  {background-color: yellow;}
+    50%  {background-color: blue;}
+    100% {background-color: green;}
+  }
+  h2 {
+    width: 100px;
+    height: 100px;
+    background-color: red;
+    position: relative;
+    animation-name: example;
+    animation-duration: 4s;
+    filter: blur(4px);
+  }
+  
+  @keyframes example {
+    0%   {background-color:red; left:0px; top:0px;}
+    25%  {background-color:yellow; left:200px; top:0px;}
+    50%  {background-color:blue; left:200px; top:200px;}
+    75%  {background-color:green; left:0px; top:200px;}
+    100% {background-color:red; left:0px; top:0px;}
+  }

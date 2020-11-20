@@ -1,0 +1,13 @@
+img {
+    float: left;
+    margin-right: 3em;
+}
+#class {text-shadow: 2px 2px aqua;
+color: aqua;}
+
+a:link {color: darkred;}
+footer{text-align: center;
+background: lightblue;
+color: white;}
+header{background: blue;}
+

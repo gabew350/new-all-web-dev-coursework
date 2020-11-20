@@ -1,0 +1,20 @@
+div {border: 2px outset black;
+    background-color: white;
+    text-align: center;
+margin-right: 40px;
+margin-left: 40px;}
+h3 {text-align: right;
+margin-right: 10px;
+padding-bottom: 5px;}
+h4 {
+    border-style: dotted;
+  border-width: 3px;
+  margin-left: 10px;
+  margin-right: 10px;
+    background-image: linear-gradient(to right, red , yellow);
+  }
+  h1{background-image: linear-gradient(to left, blue , purple);
+margin-left: 3em;
+margin-right: 3em;}
+   body{background-image: linear-gradient(to right, gold , silver);}
+h5{float:right;}

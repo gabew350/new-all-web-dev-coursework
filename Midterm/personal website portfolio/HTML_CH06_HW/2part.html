@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link src="stylesheet" href="css/ch6.css">
+    <title>Document</title>
+    
+    <style>
+    {
+        box-sizing: border-box;
+    }
+    /* Set additional styling options for the columns */
+    .column {
+    float: left;
+    }
+
+    /* Set width length for the left, right and middle columns */
+    .left {
+    width: 30%;
+    height:800px;
+    }
+
+    .middle {
+    width: 40%;
+    height:800px;
+    }
+    
+    .right {
+    width: 30%;
+    height:800px;
+    }
+
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+  
+}
+    </style>
+ 
+</head>
+<body>
+    <header style="background-color: purple ;" ><h1>hey this is the header</h1></header>
+    <div class="row">
+        <div class="column left" style="background-color:#FFB695;">
+            <h2>Column 1</h2>
+            <p>Data..</p>
+        </div>
+        <div class="column middle" style="background-color:#96D1CD;">
+            <h2>Column 2</h2>
+            <p>Data..</p>
+        </div>
+        <div class="column right" style="background-color:#74C3E1;">
+            <h2>Column 3</h2>
+            <p>Data..</p>
+        </div>
+    </div>
+    <footer><h1 style="background-color: green ;">&copy; - 2020 By Gabriel Williams All Rights Reserved</h1></footer>
+</body>
+</html>
+    

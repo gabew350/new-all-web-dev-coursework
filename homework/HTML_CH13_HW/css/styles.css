@@ -1,0 +1,15 @@
+header {font-size: x-large;}
+body{background:#ffffff;
+color: #000;
+font-weight: bold}
+footer {background: blue;
+color: white;}
+div.ex3 {
+    border-style: groove;
+    background-color: white;
+    width: 160px;
+    height: 55px;
+    overflow: auto;
+  }
+  .fieldset1{width: 50%}
+  fieldset{width:95%}

@@ -1,0 +1,19 @@
+header { text-align: center;
+    background:lightgreen;
+  color:black;
+font-family: georgia}
+  h1 {font-family: "Helvetica";
+  background: yellow;
+  color:purple;}
+h2 {font-family: italic;
+font-size: 3em;
+background: green;
+  color: blue;}
+h3~h4 { font-family:'Courier New', Courier, monospace;
+line-height: 1.5em;
+font-variant: inherit;
+background: orange;
+color: aqua}
+.ul1 {border: 2px solid black;
+padding-left: 20%;
+padding-right: 20%;}

@@ -1,0 +1,158 @@
+img {
+    float: left;
+    margin-right: 3em;
+    margin-left: 3em;
+}
+#class {text-shadow: 2px 2px aqua;
+color: black;}
+
+footer{text-align: center;
+       background: steelblue;
+       color: white;
+    padding-top: 1em;
+padding-bottom: 1em;
+box-shadow: 30px black;}
+
+a:link{color: blue}
+
+header{background-image: linear-gradient(to bottom, white, lightsteelblue);
+padding-top: 1em;
+padding-bottom: 1em;
+border-style: solid;
+border-top: steelblue;
+border-left: steelblue;
+border-bottom:steelblue;
+border-right: steelblue;
+max-width: 100%;
+}
+
+
+body {border: 4px outset steelblue;
+    box-shadow: 1px 2px 8px 10px black;
+    margin-left: 1em;
+    margin-right: 1em;
+    margin-bottom: 2em;
+    max-width: 100%;
+    max-height: 100%;
+}
+main{margin-left: 2em;
+margin-right: 2em;
+width:100%;
+max-height: 100%;
+
+}
+
+<style>
+  {
+      box-sizing: border-box;
+  }
+  /* Set additional styling options for the columns */
+  .column {
+  float: left;
+  }
+
+  /* Set width length for the left, right and middle columns */
+  .left {
+  width: 30%;
+  height:200px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  }
+
+  .middle {
+  width: 50%;
+  height:75%;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  max-height: 75%;
+  
+  }
+  
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+
+
+
+    .navbar {
+        overflow: hidden;
+        background-color: steelblue;
+        margin-left: -0.2em;
+        margin-right: ;
+        display: flex;
+        max-width:100%;
+        text-align: center;
+      padding-right: 2em;
+      }
+      .navbar a {
+        float: left;
+        font-size: 16px;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+      }
+      
+      .subnav {
+        float: left;
+        overflow: hidden;
+
+      }
+      
+      .subnav .subnavbtn {
+        font-size: 16px;  
+        border: none;
+        outline: none;
+        color: white;
+        padding: 14px 16px;
+        background-color: inherit;
+        font-family: inherit;
+        margin: 0;
+      }
+      
+      .navbar a:hover, .subnav:hover .subnavbtn {
+        background-color: steelblue;
+      }
+      
+      .subnav-content {
+        display: none;
+        position: absolute;
+        left: 0;
+        background-color: steelblue;
+        width: 100%;
+        z-index: 1;
+      }
+      
+      .subnav-content a {
+        float: left;
+        color: white;
+        text-decoration: none;
+      }
+      
+      .subnav-content a:hover {
+        background-color: #eee;
+        color: black;
+      }
+      
+      .subnav:hover .subnav-content {
+        display: block;
+      }
+      </style>
+
+      nav ul { padding: 0; list-style: none; }
+nav>ul>li { float: left; position: relative; }
+nav ul ul {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0;
+}
+nav ul ul ul { top: 0; left: 100%; }
+nav li:hover>ul { display: block; }
+
+ {

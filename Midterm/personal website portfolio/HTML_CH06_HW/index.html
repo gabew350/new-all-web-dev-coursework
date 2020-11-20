@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link src="stylesheet" href="css/ch6.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+/* Create four equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 25%;
+  padding: 15px;
+  height: 400px; /* Should be removed. Only for demonstration */
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+</style>
+</head>
+<body>
+
+<h2>Four Equal Columns</h2>
+
+<div class="row">
+  <div class="column" style="background-color:#aaa;">
+    <h2>Column 1</h2>
+    <img src="images/avengers.jpg" alt="avengers">
+    <p>some text..</p>
+  </div>
+  <div class="column" style="background-color:#bbb;">
+    <h2>Column 2</h2>
+    <img src="images/avengersendgame.jpg" alt="avengers endgame">
+    <p>Some text..</p>
+  </div>
+  <div class="column" style="background-color:#ccc;">
+    <h2>Column 3</h2>
+    <img src="images/vision.jpg" alt="vision">
+    <p>Some text..</p>
+  </div>
+  <div class="column" style="background-color:#ddd;">
+    <h2>Column 4</h2>
+    <img src="images/thanos.jpg" alt="thanos">
+    <p>Some text..</p>
+  </div>
+  <br> <br> <br> <br>
+  <div class="row">
+    <div class="column" style="background-color:#aaa;">
+      <h2>Column 5</h2>
+      <img src="images/newguys.jpg" alt="new guys">
+      <p>Some text..</p>
+    </div>
+    <div class="column" style="background-color:#bbb;">
+      <h2>Column 6</h2>
+      <img src="images/thor.jpg" alt="captain america">
+      <p>Some text..</p>
+    </div>
+    <div class="column" style="background-color:#ccc;">
+      <h2>Column 7</h2>
+      <img src="images/hulk.jpg" alt="hulk">
+      <p>Some text..</p>
+    </div>
+    <div class="column" style="background-color:#ddd;">
+      <h2>Column 8</h2>
+      <img src="images/x-men.jpg" alt="x men">
+      <p>Some text..</p>
+    </div>
+</div>
+
+</body>
+</html>
