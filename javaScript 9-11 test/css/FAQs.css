@@ -6,7 +6,7 @@ body {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 87.5%;
     width: 80em;
-    height: 25em;
+    height: 40em;
     margin: 0 auto;
     border: 3px solid black;
     padding: 15px 25px;
@@ -19,7 +19,7 @@ h2 {
     padding: .25em 0 .25em 25px;
     cursor: pointer;
     background: url(images/plus.png) no-repeat left center;
-}
+
 h2.minus {
     background: url(images/minus.png) no-repeat left center;
 }

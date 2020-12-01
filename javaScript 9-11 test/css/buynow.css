@@ -28,7 +28,7 @@ input, select {
 input[type="checkbox"],[type="radio"] {
     width: 1em;
 }
-span {
+div {
     color: red;
 }
 #navbar navbar-expand-lg navbar-light bg-light {
